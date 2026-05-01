@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>My Cookbook</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@600;700&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#1a1208;font-family:"DM Mono",monospace;color:#f0ebe3;min-height:100vh;}
+
+.header{background:#0f0a04;padding:18px 16px 12px;position:sticky;top:0;z-index:50;border-bottom:1px solid rgba(255,255,255,0.06);}
+.header-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.header h1{font-family:"Lora",serif;font-size:20px;font-weight:700;color:#fff;flex:1;}
+.btn-import{padding:8px 14px;background:#d4541a;color:#fff;border:none;border-radius:10px;font-family:"DM Mono",monospace;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;}
+.badge{display:inline-block;padding:2px 8px;background:rgba(212,84,26,0.2);border:1px solid rgba(212,84,26,0.3);border-radius:10px;font-size:10px;color:#e8742a;margin-top:4px;}
+.search-box{width:100%;padding:10px 14px;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.1);border-radius:10px;color:#fff;font-family:"DM Mono",monospace;font-size:13px;outline:none;}
+.search-box::placeholder{color:rgba(255,255,255,0.35);}
+.search-box:focus{border-color:rgba(212,84,26,0.5);}
+
+.cat-nav{display:flex;gap:8px;overflow-x:auto;padding:12px 16px 0;scrollbar-width:none;}
+.cat-nav::-webkit-scrollbar{display:none;}
+.cat-btn{flex-shrink:0;padding:7px 14px;border-radius:20px;font-family:"DM Mono",monospace;font-size:12px;cursor:pointer;white-space:nowrap;border:1.5px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.55);transition:all .2s;}
+.cat-btn.active{background:#d4541a;color:#fff;border-color:#d4541a;}
+
+.content{padding:14px 16px 60px;}
+
+.cat-section{margin-bottom:24px;}
+.cat-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.07);}
+.cat-emoji{font-size:18px;}
+.cat-title{font-family:"Lora",serif;font-size:16px;font-weight:700;}
+.cat-count{font-size:10px;color:rgba(255,255,255,0.3);margin-left:auto;}
+
+/* LIST VIEW */
+.video-list{display:flex;flex-direction:column;gap:8px;}
+.video-row{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.04);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.07);cursor:pointer;text-decoration:none;}
+.video-row:active{transform:scale(0.98);}
+.row-info{flex:1;padding:10px 4px 10px 14px;min-width:0;}
+.row-title{font-size:12px;line-height:1.45;color:#e0d0b8;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:4px;}
+.row-channel{font-size:10px;color:rgba(255,255,255,0.28);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px;}
+.row-actions{display:flex;align-items:center;gap:6px;}
+.btn-watch{padding:4px 10px;background:#d4541a;color:#fff;border:none;border-radius:6px;font-family:"DM Mono",monospace;font-size:10px;cursor:pointer;text-decoration:none;white-space:nowrap;}
+.btn-ecat{padding:4px 8px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);border:none;border-radius:6px;font-family:"DM Mono",monospace;font-size:10px;cursor:pointer;}
+.row-thumb{width:100px;height:68px;flex-shrink:0;background:#0a0703;position:relative;overflow:hidden;}
+.row-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.row-thumb .thumb-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px;}
+.duration{position:absolute;bottom:3px;right:4px;background:rgba(0,0,0,0.85);color:#fff;font-size:9px;padding:1px 4px;border-radius:3px;font-family:"DM Mono",monospace;}
+.cat-select{width:100%;margin-top:6px;padding:5px 8px;background:#1a1208;color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:6px;font-family:"DM Mono",monospace;font-size:11px;display:none;}
+
+.hint{text-align:center;padding:60px 20px;}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.75);display:flex;align-items:flex-end;justify-content:center;z-index:100;backdrop-filter:blur(4px);}
+.modal{background:#1c1208;border-radius:24px 24px 0 0;padding:28px 22px 48px;width:100%;max-width:480px;border-top:1px solid rgba(255,255,255,0.1);}
+.modal-handle{width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,0.15);margin:0 auto 22px;}
+.modal h2{font-family:"Lora",serif;font-size:20px;font-weight:700;color:#fff;margin-bottom:8px;}
+.modal p{font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:20px;line-height:1.6;}
+.drop-area{border:2px dashed rgba(212,84,26,0.4);border-radius:14px;padding:30px 20px;text-align:center;margin-bottom:16px;cursor:pointer;transition:all .2s;}
+.drop-area:hover,.drop-area:active{border-color:#d4541a;background:rgba(212,84,26,0.06);}
+.drop-icon{font-size:32px;margin-bottom:8px;}
+.drop-text{font-size:13px;color:rgba(255,255,255,0.45);line-height:1.6;}
+.btn-cancel{width:100%;padding:14px;background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.5);border:none;border-radius:12px;font-family:"DM Mono",monospace;font-size:13px;cursor:pointer;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <h1>My Cookbook</h1>
+    <button class="btn-import" onclick="openImport()">+ Import CSV</button>
+  <button style="padding:8px 10px;background:rgba(255,255,255,0.08);color:#fff;border:none;border-radius:10px;font-family:monospace;font-size:14px;cursor:pointer;" onclick="openSettings()">⚙️</button>
+  </div>
+  <div class="badge" id="totalBadge">0 videos</div>
+  <br/>
+  <input class="search-box" id="searchInput" placeholder="Search videos..." oninput="renderVideos()"/>
+</div>
+
+<div class="cat-nav" id="catNav"></div>
+
+<div class="content" id="mainContent">
+  <div class="hint" id="importHint">
+    <div style="font-size:44px;margin-bottom:12px">🎬</div>
+    <div style="font-size:14px;color:rgba(255,255,255,0.45);margin-bottom:8px">No videos yet</div>
+    <div style="font-size:12px;color:rgba(255,255,255,0.3)">Tap <strong style="color:#d4541a">+ Import CSV</strong> to upload<br/>your YouTube playlist CSV file</div>
+  </div>
+</div>
+
+<!-- Import Modal -->
+<div class="modal-bg" id="importModal" style="display:none">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <h2>Import Playlist</h2>
+    <p>Upload the CSV file exported from YouTube. All videos will be auto-categorized with real thumbnails.</p>
+    <div class="drop-area" onclick="document.getElementById('csvFile').click()">
+      <div class="drop-icon">📁</div>
+      <div class="drop-text">Tap to select your CSV file<br/><span style="font-size:11px;opacity:0.6">e.g. Cooking-new.csv</span></div>
+    </div>
+    <input type="file" id="csvFile" accept=".csv" style="display:none" onchange="handleCSV(this)"/>
+    <button class="btn-cancel" onclick="closeImport()">Cancel</button>
+  </div>
+</div>
+
+<script>
+var CAT = {
+  Chicken:      {e:"🍗", c:"#e67e22", l:"Chicken"},
+  Pork:         {e:"🐷", c:"#e84393", l:"Pork"},
+  Beef:         {e:"🥩", c:"#c0392b", l:"Beef"},
+  Seafood:      {e:"🐟", c:"#2980b9", l:"Seafood"},
+  "Mixed Meats":{e:"🍖", c:"#8e44ad", l:"Mixed Meats"},
+  Asian:        {e:"🍜", c:"#d35400", l:"Noodles / Asian"},
+  Soup:         {e:"🍲", c:"#16a085", l:"Soup"},
+  Vegetarian:   {e:"🥦", c:"#27ae60", l:"Vegetarian"},
+  Dessert:      {e:"🍰", c:"#9b59b6", l:"Dessert"},
+  Other:        {e:"📺", c:"#7f8c8d", l:"Other"}
+};
+var CAT_ORDER = ["Chicken","Pork","Beef","Seafood","Mixed Meats","Asian","Soup","Vegetarian","Dessert","Other"];
+
+var videos = [];
+var currentCat = "all";
+var STORE = "my-cookbook-v2";
+
+try { var s = localStorage.getItem(STORE); if (s) videos = JSON.parse(s); } catch(e){}
+
+function save() { try { localStorage.setItem(STORE, JSON.stringify(videos)); } catch(e){} }
+
+function esc(s) {
+  return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function hasLikelyCaptions(title, channel) {
+  // Channels/titles known to include captions or English content
+  var captionIndicators = [
+    'eng sub','[eng','eng]','english sub','cc]','[cc',
+    'made with lau','gordon ramsay','preppy kitchen',
+    'celia@cooking','prima taste','noona tsang',
+    'backpacker','backpa'
+  ];
+  var t = (title + ' ' + channel).toLowerCase();
+  for (var i=0;i<captionIndicators.length;i++) {
+    if (t.indexOf(captionIndicators[i])>=0) return true;
+  }
+  return false;
+}
+
+function categorize(title, desc) {
+  var t = (title + " " + desc).toLowerCase();
+  var nonCook = ["staub","保養鍋","清潔鍋","砧板惡夢","蔥薑蒜擺","郵輪","asmr","cooking tips with gordon","茶人","抹茶点て","保鮮法","刀功"];
+  for (var i=0;i<nonCook.length;i++) { if (t.indexOf(nonCook[i])>=0) return "Other"; }
+  var dessert = ["砵仔糕","warabi mochi","蕨餅","紅豆沙","kaya","咖央","eggs benedict","班尼迪克","甜品","dessert","pudding","布丁","達克","tart","cake"];
+  for (var i=0;i<dessert.length;i++) { if (t.indexOf(dessert[i])>=0) return "Dessert"; }
+  var soup = ["高湯","beef stock","酸辣湯","壽喜燒","sukiyaki","laksa","肉粥","congee","湯水","豬骨湯","三餸一湯","雞湯","魚湯","turkey soup"];
+  for (var i=0;i<soup.length;i++) { if (t.indexOf(soup[i])>=0) return "Soup"; }
+  var asian = ["炒麵","炒粉","炒河","年糕","米紙","星洲炒米","豉油王","即食麵","gimbap","紫菜包飯","涼皮","cold skin","拉麵","日式炒","noodle","pasta","炒飯","fried rice","炒粉麵"];
+  for (var i=0;i<asian.length;i++) { if (t.indexOf(asian[i])>=0) return "Asian"; }
+  var hC = t.indexOf("雞")>=0||t.indexOf("chicken")>=0;
+  var hP = t.indexOf("豬")>=0||t.indexOf("pork")>=0||t.indexOf("叉燒")>=0||t.indexOf("排骨")>=0||t.indexOf("五花")>=0;
+  var hB = t.indexOf("牛肉")>=0||t.indexOf("beef")>=0||t.indexOf("牛腩")>=0||t.indexOf("牛扒")>=0||t.indexOf("牛助")>=0;
+  var hS = t.indexOf("魚")>=0||t.indexOf("蝦")>=0||t.indexOf("fish")>=0||t.indexOf("shrimp")>=0||t.indexOf("花膠")>=0||t.indexOf("海鮮")>=0||t.indexOf("seafood")>=0||t.indexOf("prawn")>=0;
+  var n = (hC?1:0)+(hP?1:0)+(hB?1:0)+(hS?1:0);
+  if (n>=2) return "Mixed Meats";
+  if (hB) return "Beef";
+  if (hP) return "Pork";
+  if (hS) return "Seafood";
+  if (hC) return "Chicken";
+  var veg = ["豆腐","素食","秋葵","菠菜","西蘭花","薯條","杏鮑菇","薯仔芝士","okra","tofu","vegetarian","蛋","egg","cheese"];
+  for (var i=0;i<veg.length;i++) { if (t.indexOf(veg[i])>=0) return "Vegetarian"; }
+  return "Other";
+}
+
+function parseCSV(raw) {
+  raw = raw.replace(/^\uFEFF/,"").replace(/\r\n/g,"\n").replace(/\r/g,"\n");
+  var lines=[]; var cur=""; var inQ=false;
+  for (var i=0;i<raw.length;i++) {
+    var c=raw[i];
+    if (c==='"') { if (inQ&&raw[i+1]==='"'){cur+='"';i++;} else inQ=!inQ; }
+    else if (c==="\n"&&!inQ) { lines.push(cur); cur=""; }
+    else cur+=c;
+  }
+  if (cur) lines.push(cur);
+
+  function parseLine(line) {
+    var fs=[]; var f=""; var inQ=false;
+    for (var i=0;i<line.length;i++) {
+      var c=line[i];
+      if (c==='"') { if (inQ&&line[i+1]==='"'){f+='"';i++;} else inQ=!inQ; }
+      else if (c===","&&!inQ) { fs.push(f); f=""; }
+      else f+=c;
+    }
+    fs.push(f); return fs;
+  }
+
+  if (lines.length<2) return [];
+  var h=parseLine(lines[0]);
+  var ti=-1,ui=-1,ii=-1,ci=-1,thi=-1,di=-1,duri=-1;
+  for (var i=0;i<h.length;i++) {
+    var hh=h[i].toLowerCase().trim();
+    if (hh==="video title") ti=i;
+    else if (hh==="video url") ui=i;
+    else if (hh==="video id") ii=i;
+    else if (hh==="channel name") ci=i;
+    else if (hh==="thumbnail url") thi=i;
+    else if (hh==="description") di=i;
+    else if (hh==="duration") duri=i;
+  }
+  var result=[];
+  for (var r=1;r<lines.length;r++) {
+    if (!lines[r].trim()) continue;
+    var row=parseLine(lines[r]);
+    var title=ti>=0?(row[ti]||""):"";
+    if (!title.trim()) continue;
+    var desc=di>=0?(row[di]||""):"";
+    var vid=ii>=0?(row[ii]||""):"";
+    // Build thumb URL directly from video ID - more reliable than CSV thumb URL
+    var thumb = vid ? "https://i.ytimg.com/vi/"+vid+"/mqdefault.jpg" : (thi>=0?(row[thi]||""):"");
+    result.push({
+      id: vid,
+      title: title.trim(),
+      url: ui>=0?(row[ui]||""):"",
+      channel: ci>=0?(row[ci]||""):"",
+      thumb: thumb,
+      duration: duri>=0?(row[duri]||""):"",
+      cat: categorize(title, desc.substring(0,400))
+    });
+  }
+  return result;
+}
+
+function handleCSV(input) {
+  var file=input.files[0]; if (!file) return;
+
+  // Show loading state inside modal
+  var dropArea = document.querySelector('.drop-area');
+  var origHTML = dropArea.innerHTML;
+  dropArea.innerHTML = '<div class="drop-icon">⏳</div><div class="drop-text">Reading CSV file...</div>';
+
+  var reader=new FileReader();
+  reader.onload=function(e) {
+    dropArea.innerHTML = '<div class="drop-icon">⚙️</div><div class="drop-text">Processing '+file.name+'...</div>';
+    setTimeout(function() {
+      var parsed=parseCSV(e.target.result);
+      if (!parsed.length) {
+        dropArea.innerHTML = origHTML;
+        alert("No video data found. Please check your CSV file.");
+        return;
+      }
+      var existing={};
+      videos.forEach(function(v){ if(v.id) existing[v.id]=v.cat; });
+      parsed.forEach(function(v){ if(existing[v.id]) v.cat=existing[v.id]; });
+      videos=parsed; save(); closeImport(); 
+// ── API Key ───────────────────────────────────────────────────────────────────
+var APIKEY = '';
+try { APIKEY = localStorage.getItem('cookbook-apikey') || ''; } catch(e){}
+
+function openSettings() {
+  document.getElementById('apiKeyInput').value = APIKEY;
+  document.getElementById('settingsModal').style.display = 'flex';
+}
+function closeSettings() { document.getElementById('settingsModal').style.display = 'none'; }
+function saveSettings() {
+  APIKEY = document.getElementById('apiKeyInput').value.trim();
+  try { localStorage.setItem('cookbook-apikey', APIKEY); } catch(e){}
+  closeSettings();
+  showToast('✅ API Key saved!');
+}
+
+// ── Recipe extraction ─────────────────────────────────────────────────────────
+function openRecipe(id) {
+  var v = videos.find(function(x){ return x.id===id; });
+  if (!v) return;
+  var modal = document.getElementById('recipeModal');
+  var content = document.getElementById('recipeContent');
+  modal.style.display = 'flex';
+
+  var thumbHtml = v.thumb ? '<img src="'+esc(v.thumb)+'" style="width:100%;border-radius:12px;margin-bottom:14px;aspect-ratio:16/9;object-fit:cover;"/>' : '';
+  var watchBtn = v.url ? '<a href="'+esc(v.url)+'" target="_blank" style="display:inline-block;padding:8px 16px;background:#d4541a;color:#fff;border-radius:8px;font-family:monospace;font-size:12px;text-decoration:none;margin-bottom:16px;">▶ Watch on YouTube</a>' : '';
+
+  var recipeHtml = '';
+  if (v.recipe) {
+    recipeHtml = formatRecipe(v.recipe);
+  } else if (!APIKEY) {
+    recipeHtml = '<div style="padding:16px;background:rgba(255,255,255,0.05);border-radius:10px;font-size:12px;color:rgba(255,255,255,0.4);line-height:1.7;">No recipe extracted yet.<br/><br/>Tap ⚙️ to add your Anthropic API Key, then come back here to extract the recipe.</div>';
+  } else {
+    recipeHtml = [
+      '<div id="extractBtn" style="text-align:center;padding:20px;">',
+      '<button onclick="extractRecipe(\'' + id + '\')" ',
+      'style="padding:12px 24px;background:#d4541a;color:#fff;border:none;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;">',
+      'Extract Recipe with AI</button>',
+      '<div style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:8px;">AI will check captions and extract recipe steps</div>',
+      '</div>'
+    ].join('');  }
+
+  content.innerHTML =
+    thumbHtml +
+    '<h2 style="font-family:serif;font-size:18px;font-weight:700;color:#fff;margin-bottom:8px;">'+esc(v.title)+'</h2>' +
+    '<div style="font-size:11px;color:rgba(255,255,255,0.35);margin-bottom:12px;">'+esc(v.channel)+'</div>' +
+    watchBtn +
+    recipeHtml;
+}
+
+function closeRecipe() { document.getElementById('recipeModal').style.display = 'none'; }
+
+function formatRecipe(recipe) {
+  var html = '';
+  if (recipe.error) {
+    return '<div style="padding:14px;background:rgba(255,100,100,0.1);border-radius:10px;font-size:12px;color:rgba(255,180,180,0.8);">'+esc(recipe.error)+'</div>';
+  }
+  if (recipe.ingredients && recipe.ingredients.length) {
+    html += '<div style="font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:.12em;margin-bottom:8px;margin-top:4px;">INGREDIENTS</div>';
+    html += '<div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:12px 14px;margin-bottom:16px;">';
+    recipe.ingredients.forEach(function(ing) {
+      html += '<div style="padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:13px;color:#e0d0b8;">'+esc(ing)+'</div>';
+    });
+    html += '</div>';
+  }
+  if (recipe.steps && recipe.steps.length) {
+    html += '<div style="font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:.12em;margin-bottom:10px;">STEPS</div>';
+    recipe.steps.forEach(function(step, i) {
+      html += '<div style="display:flex;gap:12px;margin-bottom:14px;align-items:flex-start;">';
+      html += '<div style="width:26px;height:26px;border-radius:50%;background:#d4541a;color:#fff;display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:11px;font-weight:700;flex-shrink:0;">'+(i+1)+'</div>';
+      html += '<div style="font-family:serif;font-size:14px;line-height:1.65;color:#e0d0b8;">'+esc(step)+'</div>';
+      html += '</div>';
+    });
+  }
+  if (recipe.notes) {
+    html += '<div style="background:rgba(212,84,26,0.08);border-radius:10px;padding:12px 14px;border:1px solid rgba(212,84,26,0.2);">';
+    html += '<div style="font-size:10px;color:#d4541a;letter-spacing:.1em;margin-bottom:6px;">NOTES</div>';
+    html += '<div style="font-size:12px;color:#c8a882;line-height:1.6;">'+esc(recipe.notes)+'</div>';
+    html += '</div>';
+  }
+  return html;
+}
+
+async function extractRecipe(id) {
+  var v = videos.find(function(x){ return x.id===id; });
+  if (!v || !APIKEY) return;
+  var btn = document.getElementById('extractBtn');
+  if (btn) btn.innerHTML = '<div style="padding:20px;text-align:center;color:rgba(255,255,255,0.4);font-size:13px;">⏳ Extracting recipe from captions...</div>';
+
+  var prompt = 'You are a cooking assistant. The user wants to extract the recipe from this YouTube video: https://www.youtube.com/watch?v='+v.id+' titled "'+v.title+'". If this video has captions/transcript available, extract the complete recipe including ingredients with measurements and step-by-step instructions. If no captions are available or you cannot extract a recipe, return {"error": "No captions available for this video"}. Respond ONLY with valid JSON: {"ingredients":["200g flour","2 eggs"],"steps":["Step one.","Step two."],"notes":"Any tips"}';
+
+  try {
+    var res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': APIKEY,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    var data = await res.json();
+    var block = data.content && data.content.find(function(b){ return b.type==='text'; });
+    var text = block ? block.text : '';
+    var clean = text.split('```json').join('').split('```').join('').trim();
+    var recipe = JSON.parse(clean);
+    v.recipe = recipe;
+    save();
+    var content = document.getElementById('recipeContent');
+    if (content) {
+      var recipeDiv = document.getElementById('extractBtn');
+      if (recipeDiv) recipeDiv.outerHTML = formatRecipe(recipe);
+    }
+    showToast(recipe.error ? '⚠️ ' + recipe.error : '✅ Recipe extracted!');
+  } catch(e) {
+    var btn = document.getElementById('extractBtn');
+    if (btn) btn.innerHTML = '<div style="padding:14px;background:rgba(255,100,100,0.1);border-radius:10px;font-size:12px;color:rgba(255,180,180,0.8);">Failed to extract. Check your API key in ⚙️ settings.</div>';
+  }
+}
+
+renderAll();
+      showToast("✅ Imported "+videos.length+" videos!");
+      dropArea.innerHTML = origHTML;
+    }, 100);
+  };
+  reader.readAsText(file,"utf-8");
+}
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.style.cssText = 'position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#2ecc71;color:#fff;padding:12px 24px;border-radius:24px;font-family:"DM Mono",monospace;font-size:13px;font-weight:600;z-index:999;box-shadow:0 4px 20px rgba(0,0,0,0.3);transition:opacity .3s;white-space:nowrap;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  t.style.display = 'block';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(function(){ t.style.opacity='0'; setTimeout(function(){ t.style.display='none'; },300); }, 3000);
+}
+
+function openImport() { document.getElementById("importModal").style.display="flex"; }
+function closeImport() { document.getElementById("importModal").style.display="none"; document.getElementById("csvFile").value=""; }
+
+function changeCategory(id,val) {
+  var v=videos.find(function(x){return x.id===id;});
+  if (v) { v.cat=val; save(); renderAll(); }
+}
+
+function toggleSel(id) {
+  var el=document.getElementById("sel-"+id);
+  if (el) el.style.display=el.style.display==="block"?"none":"block";
+}
+
+function filterCat(cat,btn) {
+  currentCat=cat;
+  document.querySelectorAll(".cat-btn").forEach(function(b){b.classList.remove("active");});
+  btn.classList.add("active");
+  renderVideos();
+}
+
+function renderAll() {
+  document.getElementById("importHint").style.display=videos.length===0?"block":"none";
+  document.getElementById("totalBadge").textContent=videos.length+" videos";
+  renderCatNav();
+  renderVideos();
+}
+
+function renderCatNav() {
+  var bc={};
+  videos.forEach(function(v){bc[v.cat]=(bc[v.cat]||0)+1;});
+  var parts=[];
+  var aAll=currentCat==="all"?" active":"";
+  var capCount = videos.filter(function(v){ return v.recipe || hasLikelyCaptions(v.title, v.channel); }).length;
+  var capNote = capCount > 0 ? ' <span style="font-size:9px;background:rgba(46,204,113,0.15);color:#2ecc71;padding:1px 5px;border-radius:4px;">'+capCount+' CC</span>' : '';
+  parts.push("<button class=\"cat-btn"+aAll+"\" onclick=\"filterCat('all',this)\">All ("+videos.length+")"+capNote+"</button>");
+  CAT_ORDER.forEach(function(cat){
+    if (!bc[cat]) return;
+    var cfg=CAT[cat];
+    var a=currentCat===cat?" active":"";
+    parts.push("<button class=\"cat-btn"+a+"\" onclick=\"filterCat('"+cat+"',this)\">"+cfg.e+" "+cfg.l+" ("+bc[cat]+")</button>");
+  });
+  document.getElementById("catNav").innerHTML=parts.join("");
+}
+
+function renderVideos() {
+  var q=document.getElementById("searchInput").value.toLowerCase();
+  var bc={};
+  videos.forEach(function(v){
+    if ((currentCat==="all"||v.cat===currentCat)&&(!q||v.title.toLowerCase().indexOf(q)>=0)) {
+      if (!bc[v.cat]) bc[v.cat]=[];
+      bc[v.cat].push(v);
+    }
+  });
+  if (!videos.length) { document.getElementById("mainContent").innerHTML=""; return; }
+
+  var parts=[];
+  CAT_ORDER.forEach(function(cat){
+    if (!bc[cat]||!bc[cat].length) return;
+    var cfg=CAT[cat];
+    parts.push("<div class=\"cat-section\">");
+    parts.push("<div class=\"cat-header\"><span class=\"cat-emoji\">"+cfg.e+"</span><span class=\"cat-title\" style=\"color:"+cfg.c+"\">"+cfg.l+"</span><span class=\"cat-count\">"+bc[cat].length+" videos</span></div>");
+    parts.push("<div class=\"video-list\">");
+
+    bc[cat].forEach(function(v){
+      var t=esc(v.title);
+      var ch=esc(v.channel);
+      var catOpts=Object.keys(CAT).map(function(k){
+        return "<option value=\""+k+"\""+(v.cat===k?" selected":"")+">"+CAT[k].e+" "+CAT[k].l+"</option>";
+      }).join("");
+
+      parts.push("<div class=\"video-row\" data-vid=\""+v.id+"\" onclick=\"openRecipe(this.getAttribute('data-vid'))\">");
+      // Left: info
+      parts.push("<div class=\"row-info\">");
+      var capBadge = (v.recipe || hasLikelyCaptions(v.title, v.channel)) ? ' <span style="font-size:9px;background:rgba(46,204,113,0.2);color:#2ecc71;border:1px solid rgba(46,204,113,0.3);border-radius:4px;padding:1px 5px;">CC</span>' : '';
+      parts.push("<div class=\"row-title\">"+t+capBadge+"</div>");
+      parts.push("<div class=\"row-channel\">"+ch+"</div>");
+      parts.push("<div class=\"row-actions\">");
+      if (v.url) parts.push("<a class=\"btn-watch\" href=\""+esc(v.url)+"\" target=\"_blank\" onclick=\"event.stopPropagation()\">&#9654; Watch</a>");
+      parts.push("<button class=\"btn-ecat\" onclick=\"toggleSel('"+v.id+"')\">&#9998; Cat</button>");
+      parts.push("</div>");
+      parts.push("<select class=\"cat-select\" id=\"sel-"+v.id+"\" onclick=\"event.stopPropagation()\" onchange=\"changeCategory('"+v.id+"',this.value)\">"+catOpts+"</select>");
+      parts.push("</div>");
+      // Right: thumbnail
+      parts.push("<div class=\"row-thumb\">");
+      if (v.thumb) {
+        parts.push("<img src=\""+esc(v.thumb)+"\" loading=\"lazy\" alt=\"\" onerror=\"this.style.display='none'\"/>");
+      } else {
+        parts.push("<div class=\"thumb-ph\">"+cfg.e+"</div>");
+      }
+      if (v.duration&&v.duration!=="00:00") parts.push("<div class=\"duration\">"+esc(v.duration)+"</div>");
+      parts.push("</div>");
+      parts.push("</div>");
+    });
+
+    parts.push("</div></div>");
+  });
+
+  if (!parts.length) parts.push("<div style=\"text-align:center;padding:40px;color:rgba(255,255,255,0.3);font-size:13px\">No videos found</div>");
+  document.getElementById("mainContent").innerHTML=parts.join("");
+}
+
+renderAll();
+</script>
+
+<!-- Settings Modal -->
+<div class="modal-bg" id="settingsModal" style="display:none">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <h2>⚙️ Settings</h2>
+    <p>Enter your Anthropic API Key to enable AI recipe extraction from video captions. Your key is saved only on this device.</p>
+    <div style="margin-bottom:6px;font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:.1em;">ANTHROPIC API KEY</div>
+    <input type="password" id="apiKeyInput" placeholder="sk-ant-..." style="width:100%;padding:12px 14px;border:1.5px solid rgba(255,255,255,0.15);border-radius:10px;font-family:monospace;font-size:13px;color:#fff;background:rgba(255,255,255,0.06);outline:none;box-sizing:border-box;margin-bottom:6px;"/>
+    <div style="font-size:11px;color:rgba(255,255,255,0.25);margin-bottom:20px;">Get your key at console.anthropic.com/keys</div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn-cancel" style="flex:1" onclick="closeSettings()">Cancel</button>
+      <button onclick="saveSettings()" style="flex:2;padding:14px;background:#d4541a;color:#fff;border:none;border-radius:12px;font-family:monospace;font-size:13px;font-weight:600;cursor:pointer;">Save Key</button>
+    </div>
+  </div>
+</div>
+
+<!-- Recipe Detail Modal -->
+<div class="modal-bg" id="recipeModal" style="display:none" onclick="closeRecipe()">
+  <div class="modal" style="max-height:85vh;overflow-y:auto;" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div id="recipeContent"></div>
+  </div>
+</div>
+
+</body>
+</html>
