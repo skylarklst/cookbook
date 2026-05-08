@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>My Cookbook v37</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@600;700&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#1a1208;font-family:"DM Mono",monospace;color:#f0ebe3;min-height:100vh;}
+
+.header{background:#0f0a04;padding:18px 16px 12px;position:sticky;top:0;z-index:50;border-bottom:1px solid rgba(255,255,255,0.06);}
+.header-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.header h1{font-family:"Lora",serif;font-size:20px;font-weight:700;color:#fff;flex:1;}
+.btn-import{padding:8px 14px;background:#d4541a;color:#fff;border:none;border-radius:10px;font-family:"DM Mono",monospace;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;}
+.badge{display:inline-block;padding:2px 8px;background:rgba(212,84,26,0.2);border:1px solid rgba(212,84,26,0.3);border-radius:10px;font-size:10px;color:#e8742a;margin-top:4px;}
+.search-box{width:100%;padding:10px 14px;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.1);border-radius:10px;color:#fff;font-family:"DM Mono",monospace;font-size:13px;outline:none;}
+.search-box::placeholder{color:rgba(255,255,255,0.35);}
+.search-box:focus{border-color:rgba(212,84,26,0.5);}
+
+.cat-nav{display:flex;gap:8px;overflow-x:auto;padding:12px 16px 0;scrollbar-width:none;}
+.cat-nav::-webkit-scrollbar{display:none;}
+.cat-btn{flex-shrink:0;padding:7px 14px;border-radius:20px;font-family:"DM Mono",monospace;font-size:12px;cursor:pointer;white-space:nowrap;border:1.5px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.55);transition:all .2s;}
+.cat-btn.active{background:#d4541a;color:#fff;border-color:#d4541a;}
+
+.content{padding:14px 16px 60px;}
+
+.cat-section{margin-bottom:24px;}
+.cat-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.07);}
+.cat-emoji{font-size:18px;}
+.cat-title{font-family:"Lora",serif;font-size:16px;font-weight:700;}
+.cat-count{font-size:10px;color:rgba(255,255,255,0.3);margin-left:auto;}
+
+/* LIST VIEW */
+.video-list{display:flex;flex-direction:column;gap:8px;}
+.video-row{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.04);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.07);cursor:pointer;text-decoration:none;}
+.video-row:active{transform:scale(0.98);}
+.row-info{flex:1;padding:10px 4px 10px 14px;min-width:0;}
+.row-title{font-size:12px;line-height:1.45;color:#e0d0b8;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:4px;}
+.row-channel{font-size:10px;color:rgba(255,255,255,0.28);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px;}
+.row-actions{display:flex;align-items:center;gap:6px;}
+.btn-watch{padding:4px 10px;background:#d4541a;color:#fff;border:none;border-radius:6px;font-family:"DM Mono",monospace;font-size:10px;cursor:pointer;text-decoration:none;white-space:nowrap;}
+.btn-ecat{padding:4px 8px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);border:none;border-radius:6px;font-family:"DM Mono",monospace;font-size:10px;cursor:pointer;}
+.drag-handle{font-size:18px;color:rgba(255,255,255,0.25);cursor:grab;padding:4px 6px;touch-action:none;user-select:none;line-height:1;}
+.video-row.dragging{opacity:0.4;border:2px dashed #d4541a;}
+
+.row-thumb{width:100px;height:68px;flex-shrink:0;background:#0a0703;position:relative;overflow:hidden;}
+.row-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.row-thumb .thumb-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px;}
+.duration{position:absolute;bottom:3px;right:4px;background:rgba(0,0,0,0.85);color:#fff;font-size:9px;padding:1px 4px;border-radius:3px;font-family:"DM Mono",monospace;}
+.cat-select{width:100%;margin-top:6px;padding:5px 8px;background:#1a1208;color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:6px;font-family:"DM Mono",monospace;font-size:11px;display:none;}
+
+.hint{text-align:center;padding:60px 20px;}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.75);display:flex;align-items:flex-end;justify-content:center;z-index:100;backdrop-filter:blur(4px);}
+.modal{background:#1c1208;border-radius:24px 24px 0 0;padding:28px 22px 48px;width:100%;max-width:480px;border-top:1px solid rgba(255,255,255,0.1);}
+.modal-handle{width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,0.15);margin:0 auto 22px;}
+.modal h2{font-family:"Lora",serif;font-size:20px;font-weight:700;color:#fff;margin-bottom:8px;}
+.modal p{font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:20px;line-height:1.6;}
+.drop-area{border:2px dashed rgba(212,84,26,0.4);border-radius:14px;padding:30px 20px;text-align:center;margin-bottom:16px;cursor:pointer;transition:all .2s;}
+.drop-area:hover,.drop-area:active{border-color:#d4541a;background:rgba(212,84,26,0.06);}
+.drop-icon{font-size:32px;margin-bottom:8px;}
+.drop-text{font-size:13px;color:rgba(255,255,255,0.45);line-height:1.6;}
+.btn-cancel{width:100%;padding:14px;background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.5);border:none;border-radius:12px;font-family:"DM Mono",monospace;font-size:13px;cursor:pointer;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <h1>My Cookbook <span style="font-size:10px;opacity:0.4;">v37</span></h1>
+    <button onclick="openSort()" style="padding:9px 14px;background:rgba(255,255,255,0.1);color:#fff;border:none;border-radius:10px;font-family:monospace;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">⇅ Sort</button>
+    <button class="btn-import" onclick="openImport()">+ Import CSV</button>
+  <button style="padding:8px 10px;background:rgba(255,255,255,0.08);color:#fff;border:none;border-radius:10px;font-family:monospace;font-size:14px;cursor:pointer;" onclick="openSettings()">⚙️</button>
+  </div>
+  <div class="badge" id="totalBadge">0 videos</div>
+  <br/>
+  <input class="search-box" id="searchInput" placeholder="Search videos..." oninput="renderVideos()"/>
+</div>
+
+<div class="cat-nav" id="catNav"></div>
+
+<div class="content" id="mainContent">
+  <div class="hint" id="importHint">
+    <div style="font-size:44px;margin-bottom:12px">🎬</div>
+    <div style="font-size:14px;color:rgba(255,255,255,0.45);margin-bottom:8px">No videos yet</div>
+    <div style="font-size:12px;color:rgba(255,255,255,0.3)">Tap <strong style="color:#d4541a">+ Import CSV</strong> to upload<br/>your YouTube playlist CSV file</div>
+  </div>
+</div>
+
+<!-- Import Modal -->
+<div class="modal-bg" id="importModal" style="display:none">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <!-- Tabs -->
+    <div style="display:flex;gap:8px;margin-bottom:20px;">
+      <button id="tab-url" onclick="switchTab('url')" style="flex:1;padding:10px;border:none;border-radius:10px;font-family:monospace;font-size:12px;font-weight:600;cursor:pointer;background:#d4541a;color:#fff;">+ Add Video</button>
+      <button id="tab-csv" onclick="switchTab('csv')" style="flex:1;padding:10px;border:none;border-radius:10px;font-family:monospace;font-size:12px;cursor:pointer;background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.5);">Import CSV</button>
+    </div>
+
+    <!-- URL tab -->
+    <div id="panel-url">
+      <p style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:14px;line-height:1.6;">Paste a YouTube video URL to add it to your cookbook.</p>
+      <input type="text" id="addVideoUrl" placeholder="https://youtube.com/watch?v=..." style="width:100%;padding:12px 14px;border:1.5px solid rgba(255,255,255,0.15);border-radius:10px;font-family:monospace;font-size:13px;color:#fff;background:rgba(255,255,255,0.06);outline:none;box-sizing:border-box;margin-bottom:10px;"/>
+      <input type="text" id="addVideoTitle" placeholder="Video title (optional)" style="width:100%;padding:12px 14px;border:1.5px solid rgba(255,255,255,0.15);border-radius:10px;font-family:monospace;font-size:13px;color:#fff;background:rgba(255,255,255,0.06);outline:none;box-sizing:border-box;margin-bottom:10px;"/>
+      <div style="font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:.08em;margin-bottom:6px;">PASTE YOUTUBE DESCRIPTION (for accurate ingredients)</div>
+      <textarea id="addVideoDesc" placeholder="Paste the video description here — AI will extract exact ingredients and steps..." style="width:100%;padding:12px 14px;border:1.5px solid rgba(255,255,255,0.15);border-radius:10px;font-family:monospace;font-size:12px;color:#fff;background:rgba(255,255,255,0.06);outline:none;box-sizing:border-box;margin-bottom:16px;min-height:100px;resize:vertical;"></textarea>
+      <div style="display:flex;gap:10px;">
+        <button class="btn-cancel" style="flex:1" onclick="closeImport()">Cancel</button>
+        <button onclick="addVideoByUrl()" style="flex:2;padding:14px;background:#d4541a;color:#fff;border:none;border-radius:12px;font-family:monospace;font-size:13px;font-weight:600;cursor:pointer;">Add Video</button>
+      </div>
+    </div>
+
+    <!-- CSV tab -->
+    <div id="panel-csv" style="display:none;">
+      <p style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:14px;line-height:1.6;">Upload the CSV file exported from YouTube. All videos will be auto-categorized with real thumbnails.</p>
+      <div class="drop-area" onclick="document.getElementById('csvFile').click()">
+        <div class="drop-icon">📁</div>
+        <div class="drop-text">Tap to select your CSV file<br/><span style="font-size:11px;opacity:0.6">e.g. Cooking-new.csv</span></div>
+      </div>
+      <input type="file" id="csvFile" accept=".csv" style="display:none" onchange="handleCSV(this)"/>
+      <button class="btn-cancel" onclick="closeImport()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Config ────────────────────────────────────────────────────────────────────
+var CAT = {
+  Chicken:      {e:"🍗", c:"#e67e22", l:"Chicken"},
+  Pork:         {e:"🐷", c:"#e84393", l:"Pork"},
+  Beef:         {e:"🥩", c:"#c0392b", l:"Beef"},
+  Seafood:      {e:"🐟", c:"#2980b9", l:"Seafood"},
+  "Mixed Meats":{e:"🍖", c:"#8e44ad", l:"Mixed Meats"},
+  Asian:        {e:"🍜", c:"#d35400", l:"Noodles / Asian"},
+  Soup:         {e:"🍲", c:"#16a085", l:"Soup"},
+  Vegetarian:   {e:"🥦", c:"#27ae60", l:"Vegetarian"},
+  Dessert:      {e:"🍰", c:"#9b59b6", l:"Dessert"},
+  Other:        {e:"📺", c:"#7f8c8d", l:"Other"}
+};
+var CAT_ORDER = ["Chicken","Pork","Beef","Seafood","Mixed Meats","Asian","Soup","Vegetarian","Dessert","Other"];
+var STORE = "my-cookbook-v2";
+var videos = [];
+var currentCat = "all";
+var APIKEY = "";
+
+// ── Storage ───────────────────────────────────────────────────────────────────
+try { var _s = localStorage.getItem(STORE); if (_s) videos = JSON.parse(_s); } catch(e){}
+try { APIKEY = localStorage.getItem("cookbook-apikey") || ""; } catch(e){}
+function save() { try { localStorage.setItem(STORE, JSON.stringify(videos)); } catch(e){} }
+
+// ── Dummy data if empty ───────────────────────────────────────────────────────
+if (videos.length === 0) {
+  videos = [
+    {pinned:false, order:0, id:"k4OchJk0VPg", title:"【手工涼皮】輕鬆自製涼皮！Cold Skin Noodles [Eng Sub]", channel:"點Cook Guide", url:"https://youtu.be/k4OchJk0VPg", thumb:"https://i.ytimg.com/vi/k4OchJk0VPg/mqdefault.jpg", duration:"14:45", cat:"Asian"},
+    {id:"kMwFYNLghRQ", title:"【豪華素材】花膠燉雞湯！3小時清燉透骨香", channel:"點Cook Guide", url:"https://youtu.be/kMwFYNLghRQ", thumb:"https://i.ytimg.com/vi/kMwFYNLghRQ/mqdefault.jpg", duration:"14:01", cat:"Chicken"},
+    {id:"JPDqLPcnckw", title:"辣炒年糕完整食譜｜炸物搭年糕口感超讚！四季炸物辣炒年糕", channel:"孫榮Kai Son", url:"https://youtu.be/JPDqLPcnckw", thumb:"https://i.ytimg.com/vi/JPDqLPcnckw/mqdefault.jpg", duration:"6:05", cat:"Asian"},
+    {id:"pFk16o7OK9s", title:"Ricky教室 名廚爆脆煎雞髀 雞皮脆到框框聲 雞肉嫩滑多汁", channel:"Ricky講煮食堂", url:"https://youtu.be/pFk16o7OK9s", thumb:"https://i.ytimg.com/vi/pFk16o7OK9s/mqdefault.jpg", duration:"16:09", cat:"Chicken"},
+    {id:"_xtw_XvAhO0", title:"How to make a good cup of matcha tea [Eng Sub]", channel:"サムライ茶人", url:"https://youtu.be/_xtw_XvAhO0", thumb:"https://i.ytimg.com/vi/_xtw_XvAhO0/mqdefault.jpg", duration:"19:37", cat:"Other"},
+    {id:"w_aj9zf4wt0", title:"型男主廚孫榮Kai 韓式牛助排｜料理小教室", channel:"料理之王", url:"https://youtu.be/w_aj9zf4wt0", thumb:"https://i.ytimg.com/vi/w_aj9zf4wt0/mqdefault.jpg", duration:"4:45", cat:"Beef"},
+    {id:"FMfHkn4so10", title:"【麻煩哥】蜜汁叉燒 Barbecued Pork (Char Siu)", channel:"麻煩哥MaFan Gor", url:"https://youtu.be/FMfHkn4so10", thumb:"https://i.ytimg.com/vi/FMfHkn4so10/mqdefault.jpg", duration:"9:24", cat:"Pork"},
+    {id:"c8T_gtzHa5g", title:"Easy Eggs Benedict Recipe - Foolproof Hollandaise [Eng Sub]", channel:"Preppy Kitchen", url:"https://youtu.be/c8T_gtzHa5g", thumb:"https://i.ytimg.com/vi/c8T_gtzHa5g/mqdefault.jpg", duration:"8:02", cat:"Breakfast"},
+    {id:"VKwgFJj6vGU", title:"真正酸辣湯要這樣煮 刀工鍋氣最重要教你做", channel:"Kit Mak Cooking", url:"https://youtu.be/VKwgFJj6vGU", thumb:"https://i.ytimg.com/vi/VKwgFJj6vGU/mqdefault.jpg", duration:"12:49", cat:"Soup"},
+    {id:"dQw4w9WgXcQ", title:"港式傳統糕點【紅豆砵仔糕】公開百份比食譜", channel:"廚娘的365日", url:"https://youtu.be/dQw4w9WgXcQ", thumb:"https://i.ytimg.com/vi/dQw4w9WgXcQ/mqdefault.jpg", duration:"8:39", cat:"Dessert"}
+  ];
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+// Polyfills for older Samsung Internet
+if (!Element.prototype.closest) {
+  Element.prototype.closest = function(sel) {
+    var el = this;
+    while (el && el.nodeType===1) {
+      if (el.matches ? el.matches(sel) : el.msMatchesSelector(sel)) return el;
+      el = el.parentElement || el.parentNode;
+    }
+    return null;
+  };
+}
+if (!Array.prototype.findIndex) {
+  Array.prototype.findIndex = function(fn) {
+    for (var i=0;i<this.length;i++) { if (fn(this[i],i)) return i; }
+    return -1;
+  };
+}
+
+function esc(s) {
+  return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function showToast(msg) {
+  try {
+    var t = document.getElementById("toast");
+    if (!t) {
+      t = document.createElement("div");
+      t.id = "toast";
+      t.style.cssText = "position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#2ecc71;color:#fff;padding:12px 24px;border-radius:24px;font-family:monospace;font-size:13px;font-weight:600;z-index:999;box-shadow:0 4px 20px rgba(0,0,0,0.3);white-space:nowrap;";
+      document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.style.display = "block";
+    t.style.opacity = "1";
+    clearTimeout(t._timer);
+    t._timer = setTimeout(function(){
+      if (t && t.style) { t.style.opacity="0"; }
+      setTimeout(function(){ if (t && t.style) t.style.display="none"; },300);
+    }, 3000);
+  } catch(e) { console.log("Toast error:", e); }
+}
+
+function hasLikelyCaptions(title, channel) {
+  var indicators = ["eng sub","[eng","(eng","english sub","cc]","[cc","made with lau","gordon ramsay","preppy kitchen","celia@cooking","prima taste","noona tsang","backpacker","backpa","字幕"];
+  var t = (title+" "+channel).toLowerCase();
+  for (var i=0;i<indicators.length;i++) { if (t.indexOf(indicators[i])>=0) return true; }
+  return false;
+}
+
+function categorize(title, desc) {
+  var t = (title+" "+desc).toLowerCase();
+  var nonCook = ["staub","保養鍋","清潔鍋","砧板惡夢","蔥薑蒜擺","郵輪","asmr","cooking tips with gordon","茶人","保鮮法","刀功"];
+  for (var i=0;i<nonCook.length;i++) { if (t.indexOf(nonCook[i])>=0) return "Other"; }
+  var dessert = ["砵仔糕","warabi mochi","蕨餅","紅豆沙","kaya","eggs benedict","班尼迪克","甜品","dessert","pudding","布丁","cake","tart"];
+  for (var i=0;i<dessert.length;i++) { if (t.indexOf(dessert[i])>=0) return "Dessert"; }
+  var soup = ["高湯","beef stock","酸辣湯","壽喜燒","sukiyaki","laksa","肉粥","congee","湯水","豬骨湯","三餸一湯","雞湯","魚湯"];
+  for (var i=0;i<soup.length;i++) { if (t.indexOf(soup[i])>=0) return "Soup"; }
+  var asian = ["炒麵","炒粉","炒河","年糕","米紙","星洲炒米","豉油王","即食麵","gimbap","紫菜包飯","涼皮","cold skin","拉麵","日式炒","noodle","炒飯","fried rice"];
+  for (var i=0;i<asian.length;i++) { if (t.indexOf(asian[i])>=0) return "Asian"; }
+  var hC=t.indexOf("雞")>=0||t.indexOf("chicken")>=0;
+  var hP=t.indexOf("豬")>=0||t.indexOf("pork")>=0||t.indexOf("叉燒")>=0||t.indexOf("排骨")>=0||t.indexOf("五花")>=0;
+  var hB=t.indexOf("牛肉")>=0||t.indexOf("beef")>=0||t.indexOf("牛腩")>=0||t.indexOf("牛扒")>=0||t.indexOf("牛助")>=0;
+  var hS=t.indexOf("魚")>=0||t.indexOf("蝦")>=0||t.indexOf("fish")>=0||t.indexOf("shrimp")>=0||t.indexOf("花膠")>=0||t.indexOf("海鮮")>=0||t.indexOf("seafood")>=0;
+  var n=(hC?1:0)+(hP?1:0)+(hB?1:0)+(hS?1:0);
+  if (n>=2) return "Mixed Meats";
+  if (hB) return "Beef";
+  if (hP) return "Pork";
+  if (hS) return "Seafood";
+  if (hC) return "Chicken";
+  var veg=["豆腐","素食","秋葵","菠菜","西蘭花","薯條","杏鮑菇","okra","tofu","vegetarian"];
+  for (var i=0;i<veg.length;i++) { if (t.indexOf(veg[i])>=0) return "Vegetarian"; }
+  return "Other";
+}
+
+// ── CSV parsing ───────────────────────────────────────────────────────────────
+function parseCSV(raw) {
+  raw = raw.replace(/^\uFEFF/,"").replace(/\r\n/g,"\n").replace(/\r/g,"\n");
+  var lines=[]; var cur=""; var inQ=false;
+  for (var i=0;i<raw.length;i++) {
+    var c=raw[i];
+    if (c==='"') { if (inQ&&raw[i+1]==='"'){cur+='"';i++;} else inQ=!inQ; }
+    else if (c==="\n"&&!inQ) { lines.push(cur); cur=""; }
+    else cur+=c;
+  }
+  if (cur) lines.push(cur);
+  function parseLine(line) {
+    var fs=[]; var f=""; var inQ=false;
+    for (var i=0;i<line.length;i++) {
+      var c=line[i];
+      if (c==='"') { if (inQ&&line[i+1]==='"'){f+='"';i++;} else inQ=!inQ; }
+      else if (c===","&&!inQ) { fs.push(f); f=""; }
+      else f+=c;
+    }
+    fs.push(f); return fs;
+  }
+  if (lines.length<2) return [];
+  var h=parseLine(lines[0]);
+  var ti=-1,ui=-1,ii=-1,ci=-1,thi=-1,di=-1,duri=-1;
+  for (var i=0;i<h.length;i++) {
+    var hh=h[i].toLowerCase().trim();
+    if (hh==="video title") ti=i;
+    else if (hh==="video url") ui=i;
+    else if (hh==="video id") ii=i;
+    else if (hh==="channel name") ci=i;
+    else if (hh==="thumbnail url") thi=i;
+    else if (hh==="description") di=i;
+    else if (hh==="duration") duri=i;
+  }
+  var result=[];
+  for (var r=1;r<lines.length;r++) {
+    if (!lines[r].trim()) continue;
+    var row=parseLine(lines[r]);
+    var title=ti>=0?(row[ti]||""):"";
+    if (!title.trim()) continue;
+    var desc=di>=0?(row[di]||""):"";
+    var vid=ii>=0?(row[ii]||""):"";
+    var thumb=vid ? "https://i.ytimg.com/vi/"+vid+"/mqdefault.jpg" : (thi>=0?(row[thi]||""):"");
+    result.push({
+      id:vid, title:title.trim(),
+      url:ui>=0?(row[ui]||""):"",
+      channel:ci>=0?(row[ci]||""):"",
+      thumb:thumb,
+      duration:duri>=0?(row[duri]||""):"",
+      cat:categorize(title, desc.substring(0,400)),
+      pinned:false,
+      order:result.length
+    });
+  }
+  return result;
+}
+
+// ── Import ────────────────────────────────────────────────────────────────────
+function openImport() {
+  document.getElementById("importModal").style.display="flex";
+}
+function closeImport() {
+  document.getElementById("importModal").style.display="none";
+  document.getElementById("csvFile").value="";
+  document.getElementById("addVideoUrl").value="";
+  document.getElementById("addVideoTitle").value="";
+  var d=document.getElementById("addVideoDesc"); if(d) d.value="";
+}
+function handleCSV(input) {
+  var file=input.files[0]; if (!file) return;
+  var dropArea=document.querySelector(".drop-area");
+  var origHTML=dropArea.innerHTML;
+  dropArea.innerHTML="<div class=\"drop-icon\">⏳</div><div class=\"drop-text\">Reading "+file.name+"...</div>";
+  var reader=new FileReader();
+  reader.onload=function(e) {
+    dropArea.innerHTML="<div class=\"drop-icon\">⚙️</div><div class=\"drop-text\">Processing...</div>";
+    setTimeout(function(){
+      var parsed=parseCSV(e.target.result);
+      dropArea.innerHTML=origHTML;
+      if (!parsed.length) { alert("No video data found. Please check your CSV file."); return; }
+      var existing={};
+      videos.forEach(function(v){ if(v.id) existing[v.id]=v.cat; });
+      parsed.forEach(function(v){ if(existing[v.id]) v.cat=existing[v.id]; });
+      videos=parsed; save(); closeImport(); renderAll();
+      showToast("Imported "+videos.length+" videos!");
+    }, 100);
+  };
+  reader.readAsText(file,"utf-8");
+}
+
+// ── Settings ──────────────────────────────────────────────────────────────────
+function openSettings() {
+  document.getElementById("apiKeyInput").value=APIKEY;
+  document.getElementById("settingsModal").style.display="flex";
+}
+function closeSettings() { document.getElementById("settingsModal").style.display="none"; }
+function saveSettings() {
+  APIKEY=document.getElementById("apiKeyInput").value.trim();
+  try { localStorage.setItem("cookbook-apikey", APIKEY); } catch(e){}
+  closeSettings();
+  showToast("API Key saved!");
+}
+
+// ── Category filter ───────────────────────────────────────────────────────────
+function filterCat(cat, btn) {
+  currentCat=cat;
+  document.querySelectorAll(".cat-btn").forEach(function(b){ b.classList.remove("active"); });
+  btn.classList.add("active");
+  renderVideos();
+}
+
+function changeCategory(id, val) {
+  var v=videos.find(function(x){ return x.id===id; });
+  if (!v) return;
+  v.cat=val;
+  save();
+  // Close the select
+  var sel=document.getElementById("sel-"+id);
+  if (sel) sel.style.display="none";
+  // Update just this row without full re-render
+  renderAll();
+  showToast("Category updated!");
+}
+
+function toggleSel(id) {
+  var el=document.getElementById("sel-"+id);
+  if (el) el.style.display=el.style.display==="block"?"none":"block";
+}
+
+// ── Recipe popup ──────────────────────────────────────────────────────────────
+function handleRowTap(event, el) {
+  var tag=event.target.tagName.toUpperCase();
+  if (tag==="A"||tag==="BUTTON"||tag==="SELECT"||tag==="OPTION") return;
+  openRecipe(el.getAttribute("data-vid"));
+}
+
+var currentRecipeId = null;
+function openRecipe(id) {
+  if (!id) return;
+  var v=videos.find(function(x){ return x.id===id; });
+  if (!v) return;
+  currentRecipeId = id;
+  var modal=document.getElementById("recipeModal");
+  var rc=document.getElementById("recipeContent");
+  if (!modal||!rc) return;
+  modal.style.display="flex";
+
+  var thumbHtml=v.thumb ? "<img src=\""+esc(v.thumb)+"\" style=\"width:100%;border-radius:12px;margin-bottom:14px;aspect-ratio:16/9;object-fit:cover;\"/>" : "";
+  var watchBtn=v.url ? "<a href=\""+esc(v.url)+"\" target=\"_blank\" style=\"display:inline-block;padding:8px 16px;background:#d4541a;color:#fff;border-radius:8px;font-size:12px;text-decoration:none;margin-bottom:16px;\">&#9654; Watch on YouTube</a>" : "";
+
+  // Manual paste button always shown
+  // Build recipe section with all direct onclick handlers
+  var btnStyle = "display:block;width:100%;margin-bottom:8px;padding:12px 14px;border:none;border-radius:8px;font-size:13px;cursor:pointer;text-align:left;";
+  var recipeHtml = "";
+  if (v.recipe) {
+    recipeHtml += "<button onclick=\"doReExtract()\" style=\""+btnStyle+"background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.5)\">🤖 Re-guess with AI</button>";
+    recipeHtml += "<button onclick=\"doPaste()\" style=\""+btnStyle+"background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.5)\">📋 Paste ingredients &amp; steps</button>";
+    recipeHtml += formatRecipe(v.recipe);
+  } else {
+    recipeHtml += "<button onclick=\"doExtract()\" style=\""+btnStyle+"background:#d4541a;color:#fff;font-weight:600\">🤖 Auto-guess Recipe (AI)</button>";
+    recipeHtml += "<button onclick=\"doPaste()\" style=\""+btnStyle+"background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.5)\">📋 Paste ingredients &amp; steps</button>";
+  }
+
+  rc.innerHTML=
+    "<button onclick=\"closeRecipe()\" style=\"position:absolute;top:12px;right:16px;background:rgba(255,255,255,0.1);color:#fff;border:none;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;\">✕</button>"+
+    thumbHtml+
+    "<h2 style=\"font-family:serif;font-size:18px;font-weight:700;color:#fff;margin-bottom:4px;\">" + esc(v.title) + "</h2>" +
+    "<button onclick=\"doEditTitle()\" style=\"display:block;width:100%;margin-bottom:12px;padding:10px;background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.5);border:none;border-radius:8px;font-size:13px;cursor:pointer;text-align:left;\">✏️ Edit title &amp; category</button>" +
+    "<div style=\"font-size:11px;color:rgba(255,255,255,0.35);margin-bottom:12px;\">"+esc(v.channel)+"</div>"+
+    watchBtn+
+    recipeHtml;
+}
+
+function doEditTitle() {
+  var id = currentRecipeId; if (!id) return;
+  var vv = videos.find(function(x){ return x.id===id; });
+  if (!vv) return;
+
+  // Show inline edit form inside modal
+  var existing = document.getElementById('inlineEditForm');
+  if (existing) { existing.remove(); return; }
+
+  var form = document.createElement('div');
+  form.id = 'inlineEditForm';
+  form.style.cssText = 'background:rgba(255,255,255,0.06);border-radius:10px;padding:14px;margin-bottom:12px;';
+
+  var inp = document.createElement('input');
+  inp.type = 'text';
+  inp.value = vv.title === 'Loading...' ? '' : vv.title;
+  inp.placeholder = 'Enter video title...';
+  inp.style.cssText = 'width:100%;padding:10px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:8px;color:#fff;font-size:14px;box-sizing:border-box;margin-bottom:10px;outline:none;';
+
+  var saveBtn = document.createElement('button');
+  saveBtn.textContent = 'Save Title';
+  saveBtn.style.cssText = 'width:100%;padding:12px;background:#2ecc71;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;';
+  saveBtn.onclick = function() {
+    var t = inp.value.trim();
+    if (!t) return;
+    vv.title = t;
+    vv.cat = categorize(t, '');
+    save(); renderAll(); openRecipe(id);
+    showToast('Title updated!');
+  };
+
+  form.appendChild(inp);
+  form.appendChild(saveBtn);
+
+  // Insert after the edit button
+  var editBtn = document.getElementById('recipeContent').querySelector('button');
+  if (editBtn && editBtn.nextSibling) {
+    editBtn.parentNode.insertBefore(form, editBtn.nextSibling);
+  } else {
+    document.getElementById('recipeContent').appendChild(form);
+  }
+  inp.focus();
+}
+function doSaveManual() {
+  var id = currentRecipeId; if (!id) return;
+  var v = videos.find(function(x){ return x.id===id; });
+  if (!v) return;
+  var ingsEl = document.getElementById('pasteIngs');
+  var stepsEl = document.getElementById('pasteSteps');
+  if (!ingsEl && !stepsEl) return;
+  var ings = ingsEl ? ingsEl.value.trim().split('\n').filter(function(l){ return l.trim(); }) : [];
+  var steps = stepsEl ? stepsEl.value.trim().split('\n').filter(function(l){ return l.trim(); }) : [];
+  if (!ings.length && !steps.length) { showToast('Please enter ingredients or steps'); return; }
+  v.recipe = { ingredients: ings, steps: steps, notes: '' };
+  save();
+  showToast('Recipe saved!');
+  openRecipe(id);
+}
+
+function doExtract() {
+  if (currentRecipeId) extractRecipe(currentRecipeId);
+}
+function doReExtract() {
+  if (currentRecipeId) reExtract(currentRecipeId);
+}
+function doPaste() {
+  if (currentRecipeId) showManualPaste(currentRecipeId);
+}
+
+function closeRecipe() { document.getElementById("recipeModal").style.display="none"; }
+
+function formatRecipe(recipe) {
+  if (recipe.error) return "<div style=\"padding:14px;background:rgba(255,100,100,0.1);border-radius:10px;font-size:12px;color:rgba(255,180,180,0.8);\">"+esc(recipe.error)+"</div>";
+  var html="";
+  if (recipe.ingredients&&recipe.ingredients.length) {
+    html+="<div style=\"font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:.12em;margin-bottom:8px;\">INGREDIENTS</div>";
+    html+="<div style=\"background:rgba(255,255,255,0.04);border-radius:10px;padding:12px 14px;margin-bottom:16px;\">";
+    recipe.ingredients.forEach(function(ing){ html+="<div style=\"padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:13px;color:#e0d0b8;\">"+esc(ing)+"</div>"; });
+    html+="</div>";
+  }
+  if (recipe.steps&&recipe.steps.length) {
+    html+="<div style=\"font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:.12em;margin-bottom:10px;\">STEPS</div>";
+    recipe.steps.forEach(function(step,i){
+      html+="<div style=\"display:flex;gap:12px;margin-bottom:14px;align-items:flex-start;\">";
+      html+="<div style=\"width:26px;height:26px;border-radius:50%;background:#d4541a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;\">"+(i+1)+"</div>";
+      html+="<div style=\"font-size:14px;line-height:1.65;color:#e0d0b8;\">"+esc(step)+"</div></div>";
+    });
+  }
+  if (recipe.notes) {
+    html+="<div style=\"background:rgba(212,84,26,0.08);border-radius:10px;padding:12px 14px;border:1px solid rgba(212,84,26,0.2);\">";
+    html+="<div style=\"font-size:10px;color:#d4541a;letter-spacing:.1em;margin-bottom:6px;\">NOTES</div>";
+    html+="<div style=\"font-size:12px;color:#c8a882;line-height:1.6;\">"+esc(recipe.notes)+"</div></div>";
+  }
+  return html;
+}
+
+function showManualPaste(id) {
+  var rc = document.getElementById('recipeContent');
+  if (!rc) return;
+  var v = videos.find(function(x){ return x.id===id; });
+  if (!v) return;
+
+  var existing = document.getElementById('manualPasteArea');
+  if (existing) existing.remove();
+
+  var div = document.createElement('div');
+  div.id = 'manualPasteArea';
+  div.style.cssText = 'margin-bottom:16px;';
+  div.innerHTML = [
+    '<div style="font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:.1em;margin-bottom:6px;">INGREDIENTS (one per line)</div>',
+    '<textarea id="pasteIngs" style="width:100%;padding:10px;background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.15);border-radius:8px;color:#fff;font-size:13px;min-height:120px;resize:vertical;box-sizing:border-box;font-family:monospace;" placeholder="生抽 3茶匙&#10;雞粉 1茶匙&#10;蒜鹽 1茶匙..."></textarea>',
+    '<div style="font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:.1em;margin:8px 0 6px;">STEPS (one per line)</div>',
+    '<textarea id="pasteSteps" style="width:100%;padding:10px;background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.15);border-radius:8px;color:#fff;font-size:13px;min-height:150px;resize:vertical;box-sizing:border-box;font-family:monospace;" placeholder="1. 雞翼洗淨瀝乾&#10;2. 加入所有醃料醃30分鐘&#10;3. 氣炸180度15分鐘..."></textarea>',
+    '<button onclick="saveManualRecipe(currentRecipeId)" style="width:100%;margin-top:10px;padding:12px;background:#2ecc71;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;">💾 Save Recipe</button>'
+  ].join('');
+
+  // Insert after first button
+  var firstBtn = rc.querySelector('button');
+  if (firstBtn && firstBtn.nextSibling) {
+    rc.insertBefore(div, firstBtn.nextSibling);
+  } else {
+    rc.insertBefore(div, rc.firstChild);
+  }
+
+  // Pre-fill if existing recipe
+  if (v.recipe && v.recipe.ingredients) {
+    document.getElementById('pasteIngs').value = v.recipe.ingredients.join('\n');
+  }
+  if (v.recipe && v.recipe.steps) {
+    document.getElementById('pasteSteps').value = v.recipe.steps.join('\n');
+  }
+}
+
+function saveManualRecipe(id) {
+  if (!id) id = currentRecipeId;
+  var v = videos.find(function(x){ return x.id===id; });
+  if (!v) return;
+  var ings = document.getElementById('pasteIngs').value.trim().split('\n').filter(function(l){ return l.trim(); });
+  var steps = document.getElementById('pasteSteps').value.trim().split('\n').filter(function(l){ return l.trim(); });
+  if (!ings.length && !steps.length) { showToast('Please enter ingredients or steps'); return; }
+  v.recipe = { ingredients: ings, steps: steps, notes: '' };
+  save();
+  showToast('Recipe saved!');
+  // Refresh recipe popup
+  var div = document.getElementById('manualPasteArea');
+  if (div) div.remove();
+  openRecipe(id);
+}
+
+function reExtract(id) {
+  var v = videos.find(function(x){ return x.id===id; });
+  if (!v) return;
+  v.recipe = null;
+  save();
+  extractRecipe(id);
+}
+
+async function extractRecipe(id) {
+  var v=videos.find(function(x){ return x.id===id; });
+  if (!v) return;
+  if (!APIKEY) { showToast("Please add API key in settings ⚙️"); return; }
+  var btn=document.getElementById("extractBtn");
+  if (btn) btn.innerHTML="<div style=\"padding:20px;text-align:center;color:rgba(255,255,255,0.4);font-size:13px;\">⏳ Extracting recipe...</div>";
+  var descContext = v.desc ? "\n\nThe video description contains:\n"+v.desc+"\n\nUse this description to extract the EXACT ingredients and measurements." : "";
+  var prompt="You are a cooking assistant. Based on the following information about a YouTube video titled \""+v.title+"\" by "+v.channel+""+descContext+", provide the complete recipe with exact ingredients and measurements and step-by-step cooking instructions. IMPORTANT: Respond entirely in Traditional Chinese (繁體中文). Only keep unit abbreviations in English (g, ml, tsp, tbsp, cup, oz, lb). Respond ONLY with valid JSON, no explanation: {\"ingredients\":[\"300g 雞胸肉\",\"2 湯匙 醬油\"],\"steps\":[\"第一步。\",\"第二步。\"],\"notes\":\"小貼士\"}";
+  try {
+    var res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","x-api-key":APIKEY,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+      body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,messages:[{role:"user",content:prompt}]})
+    });
+    var data=await res.json();
+    var block=data.content&&data.content.find(function(b){ return b.type==="text"; });
+    var text=block?block.text:"";
+    var clean=text.split("```json").join("").split("```").join("").trim();
+    if (!clean) throw new Error("Empty response. Status: "+res.status);
+    var recipe;
+    try { recipe=JSON.parse(clean); }
+    catch(je) { recipe={error:"AI response was not valid JSON: "+clean.substring(0,100)}; }
+    v.recipe=recipe; save();
+    var rc=document.getElementById("recipeContent");
+    var eb=document.getElementById("extractBtn");
+    if (eb) eb.outerHTML=formatRecipe(recipe);
+    showToast(recipe.error?"No captions found":"Recipe extracted!");
+  } catch(e) {
+    var eb=document.getElementById("extractBtn");
+    if (eb) eb.innerHTML="<div style=\"padding:14px;background:rgba(255,100,100,0.1);border-radius:10px;font-size:12px;color:rgba(255,180,180,0.8);\">Error: "+esc(String(e))+"</div>";
+  }
+}
+
+// ── Pin & Reorder ────────────────────────────────────────────────────────────
+function togglePin(id) {
+  var v = videos.find(function(x){ return x.id===id; });
+  if (!v) return;
+  if (!v.pinned) {
+    // Pinning - save current order so we can restore it later
+    v.pinnedFromOrder = v.order;
+    v.pinned = true;
+  } else {
+    // Unpinning - restore original order
+    v.pinned = false;
+    if (v.pinnedFromOrder !== undefined) {
+      v.order = v.pinnedFromOrder;
+      delete v.pinnedFromOrder;
+    }
+  }
+  save();
+  renderAll();
+  showToast(v.pinned ? "PIN Pinned to top!" : "Unpinned");
+}
+
+function moveUp(id) {
+  var idx = videos.findIndex(function(x){ return x.id===id; });
+  if (idx <= 0) return;
+  var tmp = videos[idx];
+  videos[idx] = videos[idx-1];
+  videos[idx-1] = tmp;
+  // Update order values
+  videos.forEach(function(v,i){ v.order=i; });
+  save(); renderVideos();
+}
+
+function moveDown(id) {
+  var idx = videos.findIndex(function(x){ return x.id===id; });
+  if (idx < 0 || idx >= videos.length-1) return;
+  var tmp = videos[idx];
+  videos[idx] = videos[idx+1];
+  videos[idx+1] = tmp;
+  videos.forEach(function(v,i){ v.order=i; });
+  save(); renderVideos();
+}
+
+// ── Tab switching ────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.getElementById("panel-url").style.display = tab==="url" ? "block" : "none";
+  document.getElementById("panel-csv").style.display = tab==="csv" ? "block" : "none";
+  document.getElementById("tab-url").style.background = tab==="url" ? "#d4541a" : "rgba(255,255,255,0.07)";
+  document.getElementById("tab-url").style.color = tab==="url" ? "#fff" : "rgba(255,255,255,0.5)";
+  document.getElementById("tab-url").style.fontWeight = tab==="url" ? "600" : "400";
+  document.getElementById("tab-csv").style.background = tab==="csv" ? "#d4541a" : "rgba(255,255,255,0.07)";
+  document.getElementById("tab-csv").style.color = tab==="csv" ? "#fff" : "rgba(255,255,255,0.5)";
+  document.getElementById("tab-csv").style.fontWeight = tab==="csv" ? "600" : "400";
+}
+
+// ── Add single video by URL ───────────────────────────────────────────────────
+async function addVideoByUrl() {
+  var url = document.getElementById("addVideoUrl").value.trim();
+  var customTitle = document.getElementById("addVideoTitle").value.trim();
+  var customDesc = document.getElementById("addVideoDesc") ? document.getElementById("addVideoDesc").value.trim() : "";
+  if (!url) { alert("Please paste a YouTube URL"); return; }
+
+  var match = url.match(/(?:v=|youtu\.be\/|embed\/)([A-Za-z0-9_-]{11})/);
+  var vid = match ? match[1] : null;
+
+  if (vid && videos.find(function(v){ return v.id===vid; })) {
+    alert("This video is already in your cookbook!");
+    return;
+  }
+
+  var thumb = vid ? "https://i.ytimg.com/vi/"+vid+"/mqdefault.jpg" : "";
+
+  var newVideo = {
+    id: vid || ("manual-"+Date.now()),
+    title: customTitle || "Loading...",
+    url: url,
+    channel: "",
+    thumb: thumb,
+    duration: "",
+    cat: customTitle ? categorize(customTitle,"") : "Other",
+    pinned: false,
+    order: 0,
+    recipe: null,
+    desc: customDesc || ""
+  };
+
+  videos.forEach(function(v){ v.order=(v.order||0)+1; });
+  videos.unshift(newVideo);
+  save();
+  closeImport();
+  currentCat = "all";
+  renderAll();
+  window.scrollTo(0,0);
+
+  if (APIKEY && !customTitle) {
+    showToast("⏳ Fetching title...");
+    try {
+      var descPart = customDesc ? " The description is: "+customDesc : "";
+      var controller = new AbortController();
+      var timeout = setTimeout(function(){ controller.abort(); }, 8000);
+      var res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": APIKEY,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true"
+        },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 200,
+          messages: [{role:"user", content:"What is the title and channel of this YouTube video: "+url+descPart+" Reply with only these 3 fields separated by pipe: TITLE|CHANNEL|CATEGORY where category is one of: Chicken,Beef,Pork,Seafood,Mixed Meats,Asian,Soup,Vegetarian,Dessert,Other"}]
+        }),
+        signal: controller.signal
+      });
+      clearTimeout(timeout);
+      var data = await res.json();
+      var block = data.content && data.content.find(function(b){ return b.type==="text"; });
+      var text = block ? block.text : "";
+      var clean = text.trim();
+      var info = {title:"", channel:"", category:"Other"};
+      // Try JSON first
+      try {
+        var j = JSON.parse(clean.split("```json").join("").split("```").join("").trim());
+        info = j;
+      } catch(je) {
+        // Try pipe format: TITLE|CHANNEL|CATEGORY
+        var parts = clean.split("|");
+        if (parts.length >= 3) {
+          info.title = parts[0].trim();
+          info.channel = parts[1].trim();
+          info.category = parts[2].trim();
+        } else if (clean.length > 3 && clean.length < 200) {
+          info.title = clean;
+        }
+      }
+      if (info.title && info.title !== "Unknown") {
+        newVideo.title = info.title;
+        newVideo.channel = info.channel || "";
+        newVideo.cat = info.category || categorize(info.title,"");
+        save();
+        renderAll();
+        showToast("✅ Added: "+info.title.substring(0,25)+"...");
+      } else {
+        showToast("✅ Added! Tap video to edit title.");
+      }
+    } catch(e) {
+      // Update title from Loading... to something useful
+      newVideo.title = "Video: "+vid;
+      save();
+      renderAll();
+      showToast("✅ Added! Tap Cat to set category.");
+    }
+  } else if (customTitle) {
+    showToast("✅ Video added!");
+  } else {
+    showToast("✅ Added! Save API key in ⚙️ to auto-fetch title.");
+  }
+}
+
+function deleteVideo(id) {
+  if (!confirm("Delete this video from your cookbook?")) return;
+  videos = videos.filter(function(v){ return v.id!==id; });
+  save();
+  renderAll();
+  showToast("Video deleted");
+}
+
+// ── Row action buttons builder ───────────────────────────────────────────────
+function rowActions(v, hasCap) {
+  var d = esc(v.id);
+  var pinColor = v.pinned ? "#f39c12" : "rgba(255,255,255,0.4)";
+  var pinLabel = v.pinned ? "PIN" : "pin";
+  var cc = hasCap ? '<span style="font-size:9px;background:rgba(46,204,113,0.2);color:#2ecc71;border:1px solid rgba(46,204,113,0.3);border-radius:4px;padding:2px 6px;white-space:nowrap;">CC</span>' : '';
+  var watchBtn = v.url ? '<a class="btn-watch" href="'+esc(v.url)+'" target="_blank">&#9654; Watch</a>' : '';
+  return '<div class="row-actions">'
+    + watchBtn
+    + '<button class="btn-ecat" data-act="sel" data-id="'+d+'">Cat</button>'
+    + '<button class="btn-ecat" data-act="pin" data-id="'+d+'" style="color:'+pinColor+'">'+pinLabel+'</button>'
+
+    + '<button class="btn-ecat" data-act="del" data-id="'+d+'" style="color:#e74c3c;">Del</button>'
+    + '</div>';
+}
+
+function handleModalClick(e) {
+  e.stopPropagation(); // prevent closing modal
+  // Find data-act button
+  var btn = e.target;
+  while (btn && btn !== e.currentTarget) {
+    if (btn.getAttribute && btn.getAttribute('data-act')) {
+      var act = btn.getAttribute('data-act');
+      var id = btn.getAttribute('data-id');
+      if (act === 'edittitle') {
+        var vv = videos.find(function(x){ return x.id===id; });
+        if (!vv) return;
+        var t = prompt('Enter new title:', vv.title === 'Loading...' ? '' : vv.title);
+        if (t && t.trim()) {
+          vv.title = t.trim();
+          vv.cat = categorize(t.trim(), '');
+          save(); renderAll(); openRecipe(id);
+          showToast('Title updated!');
+        }
+        return;
+      }
+      if (act === 'manual') { showManualPaste(id); return; }
+      if (act === 'savemanual') { saveManualRecipe(id); return; }
+      if (act === 'extract') { extractRecipe(id); return; }
+      if (act === 'reextract') { reExtract(id); return; }
+      return;
+    }
+    btn = btn.parentNode;
+  }
+}
+
+function handleAct(el) {
+  var btn = el;
+  while (btn && btn !== document && !btn.getAttribute('data-act')) btn = btn.parentNode;
+  if (!btn || btn === document) return;
+  var id = btn.getAttribute('data-id');
+  var act = btn.getAttribute('data-act');
+  if (!id || !act) return;
+  if (act==='sel') toggleSel(id);
+  else if (act==='pin') togglePin(id);
+  else if (act==='del') deleteVideo(id);
+  else if (act==='reorder') enterReorderMode(id);
+}
+
+// ── Drag to reorder ──────────────────────────────────────────────────────────
+var dragSrcId = null;
+
+// ── Reorder mode (long press) ────────────────────────────────────────────────
+var reorderMode = false;
+var longPressTimer = null;
+
+function initDrag() {
+  // initDrag is now a no-op - listener set up once at boot
+}
+
+function enterReorderMode(id) {
+  var v = videos.find(function(x){ return x.id===id; });
+  if (!v) return;
+  try { window.navigator.vibrate([80]); } catch(e){}
+
+  var existing = document.getElementById('reorder-ui');
+  if (existing) existing.remove();
+  document.querySelectorAll('.video-row').forEach(function(r){ r.style.outline=''; });
+
+  var row = document.querySelector('.video-row[data-vid="'+id+'"]');
+  if (!row) return;
+  row.style.outline = '3px solid #d4541a';
+  row.style.outlineOffset = '2px';
+
+  var ui = document.createElement('div');
+  ui.id = 'reorder-ui';
+  ui.style.cssText = 'display:flex;align-items:stretch;gap:8px;padding:10px 0 4px 0;';
+
+  function makeBtn(label, color, fn) {
+    var b = document.createElement('button');
+    b.textContent = label;
+    b.style.cssText = 'flex:1;padding:14px 8px;background:'+color+';color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;';
+    b.addEventListener('touchend', function(e){ e.preventDefault(); e.stopPropagation(); fn(); }, {passive:false});
+    b.addEventListener('click', function(e){ e.stopPropagation(); fn(); });
+    return b;
+  }
+
+  ui.appendChild(makeBtn('↑ Up', '#d4541a', function(){ reorderMove(id,-1); }));
+  ui.appendChild(makeBtn('↓ Down', '#d4541a', function(){ reorderMove(id,1); }));
+  ui.appendChild(makeBtn('✓ Done', '#2ecc71', function(){ exitReorderMode(); }));
+
+  var actions = row.querySelector('.row-actions');
+  if (actions) actions.style.display = 'none';
+
+  row.appendChild(ui);
+  row.scrollIntoView({behavior:'smooth', block:'center'});
+  reorderMode = id;
+}
+
+
+function reorderMove(id, dir) {
+  var idx = videos.findIndex(function(x){ return x.id===id; });
+  if (idx < 0) return;
+  var newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= videos.length) {
+    showToast(dir < 0 ? 'Already at top!' : 'Already at bottom!');
+    return;
+  }
+  // Swap in array
+  var tmp = videos[idx];
+  videos[idx] = videos[newIdx];
+  videos[newIdx] = tmp;
+  videos.forEach(function(v,i){ v.order=i; });
+  save();
+
+  // Swap the actual DOM rows without full re-render
+  var rowA = document.querySelector('.video-row[data-vid="'+id+'"]');
+  var rowB = document.querySelector('.video-row[data-vid="'+videos[idx].id+'"]');
+  if (rowA && rowB) {
+    var parent = rowA.parentNode;
+    if (dir < 0) {
+      parent.insertBefore(rowA, rowB);
+    } else {
+      parent.insertBefore(rowB, rowA);
+    }
+    rowA.scrollIntoView({behavior:'smooth', block:'center'});
+  }
+}
+
+function exitReorderMode() {
+  reorderMode = false;
+  var ui = document.getElementById('reorder-ui');
+  if (ui) {
+    var row = ui.parentNode;
+    if (row) {
+      var actions = row.querySelector('.row-actions');
+      if (actions) actions.style.display = '';
+    }
+    ui.remove();
+  }
+  document.querySelectorAll('.video-row').forEach(function(r){
+    r.style.outline = '';
+    r.style.outlineOffset = '';
+  });
+  showToast('Order saved!');
+}
+
+// ── Sort mode ────────────────────────────────────────────────────────────────
+function openSort() {
+  var modal = document.getElementById('sortModal');
+  var list = document.getElementById('sortList');
+  modal.style.display = 'block';
+
+  // Show current category filter videos
+  var filtered = currentCat === 'all' ? videos.slice() : videos.filter(function(v){ return v.cat===currentCat; });
+  // Sort by current order
+  filtered.sort(function(a,b){
+    if (a.pinned&&!b.pinned) return -1;
+    if (!a.pinned&&b.pinned) return 1;
+    return (a.order||0)-(b.order||0);
+  });
+
+  var html = '';
+  filtered.forEach(function(v, i) {
+    var thumb = v.thumb ? '<img src="'+esc(v.thumb)+'" style="width:50px;height:34px;object-fit:cover;border-radius:6px;flex-shrink:0;"/>' : '<div style="width:50px;height:34px;background:#333;border-radius:6px;flex-shrink:0;"></div>';
+    html += '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);">';
+    html += '<input type="number" min="1" max="999" data-id="'+esc(v.id)+'" placeholder="'+(i+1)+'" style="width:52px;padding:8px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.15);border-radius:8px;color:#fff;font-size:16px;text-align:center;font-family:monospace;-webkit-appearance:none;" />';
+    html += thumb;
+    html += '<div style="flex:1;font-size:12px;color:#e0d0b8;overflow:hidden;"><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(v.title)+'</div><div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:2px;">'+esc(v.channel)+'</div></div>';
+    html += '</div>';
+  });
+  list.innerHTML = html;
+}
+
+function applySort() {
+  var inputs = document.querySelectorAll('#sortList input[data-id]');
+  var ranked = [];
+  var unranked = [];
+
+  inputs.forEach(function(inp) {
+    var id = inp.getAttribute('data-id');
+    var val = inp.value.trim();
+    if (val !== '') {
+      ranked.push({id: id, rank: parseInt(val)});
+    } else {
+      unranked.push(id);
+    }
+  });
+
+  // Sort ranked by their rank number
+  ranked.sort(function(a,b){ return a.rank - b.rank; });
+
+  // Assign new order values
+  var orderIdx = 0;
+  ranked.forEach(function(r) {
+    var v = videos.find(function(x){ return x.id===r.id; });
+    if (v) { v.order = orderIdx++; v.pinned = false; }
+  });
+  // Unranked get remaining order
+  unranked.forEach(function(id) {
+    var v = videos.find(function(x){ return x.id===id; });
+    if (v) v.order = orderIdx++;
+  });
+  // Videos not shown in current filter keep their relative order
+  videos.forEach(function(v) {
+    if (v.order === undefined) v.order = orderIdx++;
+  });
+
+  save();
+  closeSort();
+  renderAll();
+  showToast('Sort applied!');
+}
+
+function closeSort() {
+  document.getElementById('sortModal').style.display = 'none';
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function renderAll() {
+  var hint=document.getElementById("importHint");
+  var badge=document.getElementById("totalBadge");
+  if (hint) hint.style.display=videos.length===0?"block":"none";
+  if (badge) badge.textContent=videos.length+" videos";
+  renderCatNav();
+  renderVideos();
+}
+
+function renderCatNav() {
+  var nav=document.getElementById("catNav");
+  if (!nav) return;
+  var bc={};
+  videos.forEach(function(v){ bc[v.cat]=(bc[v.cat]||0)+1; });
+  var capCount=videos.filter(function(v){ return v.recipe||hasLikelyCaptions(v.title,v.channel); }).length;
+  var parts=[];
+  var aAll=currentCat==="all"?" active":"";
+  parts.push("<button class=\"cat-btn"+aAll+"\" onclick=\"filterCat('all',this)\">All ("+videos.length+") <span style=\"font-size:9px;background:rgba(46,204,113,0.25);color:#2ecc71;border-radius:4px;padding:1px 5px;\">"+capCount+" CC</span></button>");
+  CAT_ORDER.forEach(function(cat){
+    if (!bc[cat]) return;
+    var cfg=CAT[cat];
+    var a=currentCat===cat?" active":"";
+    parts.push("<button class=\"cat-btn"+a+"\" onclick=\"filterCat('"+cat+"',this)\">"+cfg.e+" "+cfg.l+" ("+bc[cat]+")</button>");
+  });
+  nav.innerHTML=parts.join("");
+}
+
+function renderVideos() {
+  var si=document.getElementById("searchInput");
+  var mc=document.getElementById("mainContent");
+  if (!si||!mc) return;
+  var q=si.value.toLowerCase();
+  var bc={};
+  // Sort: pinned first, then by order
+  var sorted = videos.slice().sort(function(a,b){
+    if (a.pinned && !b.pinned) return -1;
+    if (!a.pinned && b.pinned) return 1;
+    return (a.order||0)-(b.order||0);
+  });
+  sorted.forEach(function(v){
+    if ((currentCat==="all"||v.cat===currentCat)&&(!q||v.title.toLowerCase().indexOf(q)>=0)) {
+      if (!bc[v.cat]) bc[v.cat]=[];
+      bc[v.cat].push(v);
+    }
+  });
+  if (!videos.length) { document.getElementById("mainContent").innerHTML=""; return; }
+
+  var parts=[];
+  CAT_ORDER.forEach(function(cat){
+    if (!bc[cat]||!bc[cat].length) return;
+    var cfg=CAT[cat];
+    parts.push("<div class=\"cat-section\">");
+    parts.push("<div class=\"cat-header\"><span class=\"cat-emoji\">"+cfg.e+"</span><span class=\"cat-title\" style=\"color:"+cfg.c+"\">"+cfg.l+"</span><span class=\"cat-count\">"+bc[cat].length+" videos</span></div>");
+    parts.push("<div class=\"video-list\">");
+
+    bc[cat].forEach(function(v){
+      var t=esc(v.title);
+      var ch=esc(v.channel);
+      var hasCap=v.recipe||hasLikelyCaptions(v.title,v.channel);
+      var catOpts=Object.keys(CAT).map(function(k){
+        return "<option value=\""+k+"\""+(v.cat===k?" selected":"")+">"+CAT[k].e+" "+CAT[k].l+"</option>";
+      }).join("");
+
+      parts.push("<div class=\"video-row\" data-vid=\""+v.id+"\" onclick=\"handleRowTap(event,this)\" style=\"cursor:pointer;\">");
+      parts.push("<div class=\"row-info\">");
+      parts.push("<div class=\"row-title\">"+t+"</div>");
+      parts.push("<div class=\"row-channel\">"+ch+"</div>");
+      parts.push(rowActions(v, hasCap));
+      parts.push("<select class=\"cat-select\" id=\"sel-"+v.id+"\" onclick=\"event.stopPropagation()\" onchange=\"changeCategory('"+v.id+"',this.value)\">"+catOpts+"</select>");
+      parts.push("</div>");
+      parts.push("<div class=\"row-thumb\">");
+      if (v.thumb) parts.push("<img src=\""+esc(v.thumb)+"\" loading=\"lazy\" alt=\"\" onerror=\"this.style.display='none'\"/>");
+      else parts.push("<div class=\"thumb-ph\">"+cfg.e+"</div>");
+      if (v.duration&&v.duration!=="00:00") parts.push("<div class=\"duration\">"+esc(v.duration)+"</div>");
+      parts.push("</div></div>");
+    });
+
+    parts.push("</div></div>");
+  });
+
+  if (!parts.length) parts.push("<div style=\"text-align:center;padding:40px;color:rgba(255,255,255,0.3);font-size:13px;\">No videos found</div>");
+  if (mc) mc.innerHTML=parts.join("");
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+window.onload = function() {
+  renderAll();
+  // Single delegated listener for ALL interactions
+  document.addEventListener('click', function(e) {
+    var el = e.target;
+
+    // Check if a data-act button was clicked
+    var btn = el;
+    while (btn && btn !== document.body) {
+      if (btn.getAttribute && btn.getAttribute('data-act')) {
+        var act = btn.getAttribute('data-act');
+        var id = btn.getAttribute('data-id');
+        if (act === 'del') {
+          if (confirm('Delete this video?')) {
+            videos = videos.filter(function(v){ return v.id !== id; });
+            save(); renderAll();
+            showToast('Deleted!');
+          }
+          return;
+        }
+        if (act === 'pin') {
+          var v = videos.find(function(x){ return x.id===id; });
+          if (v) { v.pinned=!v.pinned; save(); renderAll(); showToast(v.pinned?'Pinned!':'Unpinned'); }
+          return;
+        }
+        if (act === 'sel') { toggleSel(id); return; }
+
+        handleAct(btn);
+        return;
+      }
+      btn = btn.parentNode;
+    }
+
+    // Check if a watch link was clicked
+    if (el.tagName === 'A' || (el.parentNode && el.parentNode.tagName === 'A')) return;
+
+    // Check if row was tapped - open recipe
+    var row = el;
+    while (row && row !== document.body) {
+      if (row.classList && row.classList.contains('video-row')) {
+        openRecipe(row.getAttribute('data-vid'));
+        return;
+      }
+      row = row.parentNode;
+    }
+  });
+
+  // Single delegated long-press listener - never removed
+  var longPressTimer = null;
+  document.addEventListener('touchstart', function(e) {
+    var row = e.target;
+    // Walk up to find .video-row
+    while (row && row !== document) {
+      if (row.classList && row.classList.contains('video-row')) break;
+      row = row.parentNode;
+    }
+    if (!row || row === document) return;
+    if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON' || e.target.tagName === 'SELECT') return;
+    var vid = row.getAttribute('data-vid');
+    if (!vid) return;
+    longPressTimer = setTimeout(function() {
+      enterReorderMode(vid);
+    }, 600);
+  }, {passive:true});
+  document.addEventListener('touchend', function() {
+    clearTimeout(longPressTimer);
+  }, {passive:true});
+  document.addEventListener('touchmove', function() {
+    clearTimeout(longPressTimer);
+  }, {passive:true});
+};
+</script>
+
+<!-- Settings Modal -->
+<div class="modal-bg" id="settingsModal" style="display:none">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <h2>⚙️ Settings</h2>
+    <p>Enter your Anthropic API Key to enable AI recipe extraction from video captions. Your key is saved only on this device.</p>
+    <div style="margin-bottom:6px;font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:.1em;">ANTHROPIC API KEY</div>
+    <input type="password" id="apiKeyInput" placeholder="sk-ant-..." style="width:100%;padding:12px 14px;border:1.5px solid rgba(255,255,255,0.15);border-radius:10px;font-family:monospace;font-size:13px;color:#fff;background:rgba(255,255,255,0.06);outline:none;box-sizing:border-box;margin-bottom:6px;"/>
+    <div style="font-size:11px;color:rgba(255,255,255,0.25);margin-bottom:20px;">Get your key at console.anthropic.com/keys</div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn-cancel" style="flex:1" onclick="closeSettings()">Cancel</button>
+      <button onclick="saveSettings()" style="flex:2;padding:14px;background:#d4541a;color:#fff;border:none;border-radius:12px;font-family:monospace;font-size:13px;font-weight:600;cursor:pointer;">Save Key</button>
+    </div>
+  </div>
+</div>
+
+<!-- Recipe Detail Modal -->
+<div class="modal-bg" id="recipeModal" style="display:none">
+  <div class="modal" id="recipeModalInner" style="max-height:85vh;overflow-y:auto;" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div id="recipeContent"></div>
+  </div>
+</div>
+
+<!-- Sort Modal -->
+<div id="sortModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;overflow-y:auto;">
+  <div style="background:#1a1208;min-height:100vh;padding:0 0 80px;">
+    <div style="background:#0f0a04;padding:16px 18px;position:sticky;top:0;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,0.08);">
+      <div style="flex:1;font-family:serif;font-size:18px;font-weight:700;color:#fff;">Sort Videos</div>
+      <button onclick="applySort()" style="padding:10px 18px;background:#2ecc71;color:#fff;border:none;border-radius:10px;font-family:monospace;font-size:13px;font-weight:700;cursor:pointer;">Apply</button>
+      <button onclick="closeSort()" style="padding:10px 14px;background:rgba(255,255,255,0.1);color:#fff;border:none;border-radius:10px;font-family:monospace;font-size:13px;cursor:pointer;">Cancel</button>
+    </div>
+    <div style="padding:12px 16px;font-family:monospace;font-size:11px;color:rgba(255,255,255,0.4);">Enter a number next to each video to set its position. Leave blank to keep current order.</div>
+    <div id="sortList" style="padding:0 16px;"></div>
+  </div>
+</div>
+</body>
+</html>
