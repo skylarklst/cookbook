@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tina's Fitness Plan</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Mono:wght@700&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { min-height: 100vh; background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); font-family: 'DM Sans', sans-serif; color: #fff; padding: 16px 20px 48px; }
+    h1 { font-family: 'Space Mono', monospace; font-size: 21px; }
+    .badge { display: inline-block; margin-top: 10px; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+    .header { text-align: center; margin-bottom: 20px; }
+    .date-label { font-size: 12px; letter-spacing: 3px; color: #aaa; text-transform: uppercase; margin-bottom: 4px; }
+    .section-label { font-size: 11px; letter-spacing: 2px; color: #888; text-transform: uppercase; margin-bottom: 12px; }
+
+    /* Bedtime alert */
+    .bedtime-alert { border-radius: 12px; padding: 10px 14px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; font-size: 13px; font-weight: 600; }
+    .bedtime-alert.urgent { background: rgba(255,80,80,0.15); border: 1px solid rgba(255,80,80,0.5); color: #FF6060; }
+    .bedtime-alert.warning { background: rgba(255,200,60,0.12); border: 1px solid rgba(255,200,60,0.4); color: #FFD060; }
+    .bedtime-alert.ok { background: rgba(78,205,196,0.1); border: 1px solid rgba(78,205,196,0.3); color: #4ECDC4; }
+
+    /* WFH Toggle Row */
+    .toggle-section { margin-bottom: 24px; }
+    .toggle-grid { display: flex; gap: 5px; }
+    .day-toggle { flex: 1; border-radius: 10px; padding: 8px 2px; text-align: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); transition: all 0.2s; user-select: none; }
+    .day-toggle.today-col { outline: 2px solid rgba(255,255,255,0.3); outline-offset: 1px; }
+    .day-toggle .dname { font-size: 10px; font-weight: 700; margin-bottom: 3px; }
+    .day-toggle .dtype { font-size: 8px; margin-top: 2px; color: #666; }
+    .day-toggle .wfh-pill { font-size: 8px; font-weight: 700; border-radius: 4px; padding: 1px 4px; margin-top: 3px; display: inline-block; }
+    .day-toggle.wfh-on .wfh-pill { background: rgba(78,205,196,0.3); color: #4ECDC4; }
+    .day-toggle.wfh-off .wfh-pill { background: rgba(255,255,255,0.1); color: #888; }
+
+    .now-card { border-radius: 16px; padding: 18px; margin-bottom: 20px; background: rgba(255,255,255,0.06); border-left: 4px solid; }
+    .now-label { font-size: 11px; letter-spacing: 2px; color: #aaa; text-transform: uppercase; margin-bottom: 6px; }
+    .now-title { font-size: 19px; font-weight: 700; margin-bottom: 6px; }
+    .now-detail { font-size: 13px; color: #ccc; line-height: 1.6; }
+    .now-time { margin-top: 6px; font-size: 12px; }
+    .schedule-item { margin-bottom: 10px; border-radius: 12px; border: 1px solid transparent; transition: all 0.2s; }
+    .schedule-row { display: flex; align-items: flex-start; gap: 12px; padding: 13px 14px; cursor: pointer; }
+    .checkbox { width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0; margin-top: 1px; border: 2px solid #555; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+    .checkbox.done { background: #4ECDC4; border-color: #4ECDC4; }
+    .item-label { font-weight: 600; font-size: 14px; }
+    .item-label.done { text-decoration: line-through; }
+    .item-detail { font-size: 12px; color: #999; margin-top: 3px; line-height: 1.5; }
+    .item-time { font-size: 11px; color: #666; margin-top: 3px; }
+    .videos-btn { border-radius: 8px; padding: 4px 10px; font-size: 11px; cursor: pointer; font-weight: 700; flex-shrink: 0; border: 1px solid; background: transparent; }
+    .exercise-list { padding: 0 14px 14px; }
+    .exercise-row { display: flex; align-items: center; justify-content: space-between; padding: 7px 10px; margin-bottom: 4px; border-radius: 8px; background: rgba(255,255,255,0.05); }
+    .exercise-name { font-size: 13px; color: #ddd; }
+    .watch-btn { border-radius: 6px; padding: 3px 10px; font-size: 11px; cursor: pointer; font-weight: 700; border: 1px solid; background: transparent; }
+    .video-panel { margin-top: 10px; border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.15); background: #000; }
+    .video-panel iframe { width: 100%; height: 200px; border: none; display: block; }
+    .video-footer { display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: #1a1a1a; }
+    .yt-link { font-size: 11px; color: #FF4444; text-decoration: none; font-weight: 600; }
+    .close-btn { font-size: 11px; color: #888; cursor: pointer; background: none; border: none; }
+    .nutrition { margin-top: 20px; padding: 13px 16px; border-radius: 12px; background: rgba(255,230,109,0.08); border: 1px solid rgba(255,230,109,0.2); font-size: 12px; color: #FFE66D; }
+    .hint { font-size: 10px; color: #666; text-align: center; margin-bottom: 8px; }
+
+    /* Achievements */
+    .achievements-section { margin-top: 28px; }
+    .tab-row { display: flex; gap: 8px; margin-bottom: 16px; }
+    .tab { flex: 1; padding: 8px; border-radius: 8px; text-align: center; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); color: #888; }
+    .tab.active { background: rgba(255,107,53,0.2); border-color: #FF6B35; color: #FF6B35; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; margin-bottom: 8px; }
+    .cal-header { font-size: 9px; color: #666; text-align: center; padding: 2px 0; }
+    .cal-day { border-radius: 6px; padding: 4px 2px; text-align: center; font-size: 10px; min-height: 36px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; }
+    .cal-day.empty { background: transparent; }
+    .cal-day.future { background: rgba(255,255,255,0.03); color: #444; }
+    .cal-day.rest-day { background: rgba(255,255,255,0.04); color: #555; }
+    .cal-day.done-full { background: rgba(78,205,196,0.2); border: 1px solid rgba(78,205,196,0.4); color: #4ECDC4; }
+    .cal-day.done-partial { background: rgba(255,230,109,0.15); border: 1px solid rgba(255,230,109,0.3); color: #FFE66D; }
+    .cal-day.missed { background: rgba(255,80,80,0.1); border: 1px solid rgba(255,80,80,0.2); color: #FF8080; }
+    .cal-day.today-cal { outline: 2px solid rgba(255,255,255,0.4); outline-offset: 1px; }
+    .cal-day-num { font-size: 11px; font-weight: 700; }
+    .cal-day-ex { font-size: 7px; text-align: center; line-height: 1.2; max-width: 100%; overflow: hidden; }
+    .month-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .month-nav button { background: rgba(255,255,255,0.08); border: none; color: #fff; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 14px; }
+    .month-title { font-size: 14px; font-weight: 700; }
+    .legend { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+    .legend-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: #888; }
+    .legend-dot { width: 8px; height: 8px; border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script>
+    const EXERCISES = {
+      "Lower Body Strength": [
+        { name: "Squat ×10 ×3", vid: "e1UYgO67zkw" },
+        { name: "Glute Bridge ×12 ×3", vid: "mfdlES3uZNA" },
+        { name: "Romanian Deadlift ×10 ×3", vid: "08StUopZee8" },
+        { name: "Plank 30s ×3", vid: "-V6gk1i4pvY" },
+        { name: "🧘 Stretching (optional, 5 mins)", vid: "L_xrDAtykMI" },
+      ],
+      "Upper Body (Arms)": [
+        { name: "Shoulder Press ×10 ×3", vid: "seUCEgPsBtc" },
+        { name: "Bent Over Row ×10 ×3", vid: "HUp6djHa37Y" },
+        { name: "Bicep Curl ×12 ×3", vid: "K5Sz5sIqaWU" },
+        { name: "Tricep Extension ×12 ×3", vid: "YM8iX9BJWjA" },
+        { name: "⚡ Side Step Drill (optional) 30s ×3", vid: "YnBb3W1430U" },
+      ],
+      "Recovery Arms": [
+        { name: "Bicep Curl ×12 ×2", vid: "K5Sz5sIqaWU" },
+        { name: "Tricep Extension ×12 ×2", vid: "YM8iX9BJWjA" },
+      ],
+      "Easy Walking": [
+        { name: "Easy Walking Pad tutorial", vid: "4kEOLbAFkQ0" },
+      ],
+      "Full Body": [
+        { name: "🔥 Warm Up (5 mins)", vid: "R0mMyV5OtcM" },
+        { name: "Squat ×10 ×3", vid: "e1UYgO67zkw" },
+        { name: "Romanian Deadlift ×10 ×3", vid: "08StUopZee8" },
+        { name: "Shoulder Press ×10 ×3", vid: "seUCEgPsBtc" },
+        { name: "Bent Over Row ×10 ×3", vid: "HUp6djHa37Y" },
+        { name: "Bicep Curl ×12 ×2", vid: "K5Sz5sIqaWU" },
+        { name: "Plank 30s ×3", vid: "-V6gk1i4pvY" },
+        { name: "⚡ Tennis Agility (optional) 30s ×3", vid: "YnBb3W1430U" },
+      ],
+      "Lunch Walk": [{ name: "Walking Pad How-To", vid: "4kEOLbAFkQ0" }],
+      "Recovery Cardio": [{ name: "Interval Walk/Run Tutorial", vid: "YnBb3W1430U" }],
+      "Rest & Recovery": [{ name: "Full Body Stretching", vid: "L_xrDAtykMI" }],
+    };
+
+    const WFH_PLANS = [
+      { type: "Training", label: "Lower Body + Core", schedule: [
+        { time: "12:30", label: "🚶 Lunch Walk", detail: "Walking pad • Incline 8–10% • Speed Lv3 • 15–20 mins" },
+        { time: "18:00", label: "💪 Lower Body Strength", detail: "Squat ×10 ×3 | Glute Bridge ×12 ×3 | Romanian Deadlift ×10 ×3 | Plank 30s ×3" },
+        { time: "18:35", label: "🧘 Stretch (optional)", detail: "5 mins light stretching after training — legs, hips, back" },
+      ]},
+      { type: "Training", label: "Upper Body (Arms)", schedule: [
+        { time: "12:30", label: "🚶 Lunch Walk", detail: "Walking pad • Incline 8–10% • Speed Lv3 • 15–20 mins" },
+        { time: "18:00", label: "💪 Upper Body (Arms)", detail: "Shoulder Press ×10 ×3 | Bent Over Row ×10 ×3 | Bicep Curl ×12 ×3 | Tricep Extension ×12 ×3" },
+        { time: "18:35", label: "⚡ Agility (optional)", detail: "Side Step Drill 30s ×3 — stay low, quick feet, great for tennis" },
+      ]},
+      { type: "Training", label: "Full Body", schedule: [
+        { time: "12:30", label: "🚶 Lunch Walk", detail: "Walking pad • Incline 8–10% • Speed Lv3 • 15–20 mins" },
+        { time: "18:00", label: "🔥 Warm Up (5 mins)", detail: "March in place • Arm circles • Side steps • Bodyweight squat • Shoulder rolls • Twisting stretch" },
+        { time: "18:05", label: "💪 Full Body Workout", detail: "Squat ×10 ×3 | Romanian Deadlift ×10 ×3 | Shoulder Press ×10 ×3 | Bent Over Row ×10 ×3 | Bicep Curl ×12 ×2 | Plank 30s ×3" },
+        { time: "18:30", label: "⚡ Tennis Agility (optional)", detail: "Side Step Drill 30s ×3 — stay low, quick feet, move left/right" },
+      ]},
+    ];
+
+    const OFFICE_PLANS = [
+      { type: "Recovery", label: "Steps + Optional Light Arms", schedule: [
+        { time: "Anytime", label: "🚶 Steps", detail: "6000+ steps (natural on office days) — consistency > intensity 💛" },
+        { time: "Optional", label: "💪 Light Arms (optional)", detail: "Bicep Curl ×12 ×2 | Tricep Extension ×12 ×2" },
+        { time: "Optional", label: "🚶 Easy Walking Pad (optional)", detail: "Incline 3–5% • Speed Lv2.5–3 • 10–20 mins — stress relief & digestion, not cardio" },
+      ]},
+      { type: "Movement", label: "Recovery Cardio", schedule: [
+        { time: "Anytime", label: "🚶 Option A — Easy Walk (recommended)", detail: "Walking pad • Incline 3–5% • Speed Lv2.5–3 • 10–20 mins — gentle, sustainable" },
+        { time: "Anytime", label: "🏃 Option B — Light Intervals (energetic day)", detail: "Lv3 (2 min) → Lv5–6 (30s) × 4–6 rounds — only if you feel good!" },
+      ]},
+    ];
+
+    const WEEKEND_PLANS = {
+      6: { type: "Active", label: "Outdoor Walk / Movement", schedule: [
+        { time: "Anytime", label: "🌿 Active Rest", detail: "Outdoor walk • Target 8000–10000 steps" },
+      ]},
+      0: { type: "Rest", label: "Recovery / Stretching", schedule: [
+        { time: "Anytime", label: "😴 Rest & Recovery", detail: "Stretching • Light movement • Target sleep: 00:00–00:30 💛" },
+      ]},
+    };
+
+    const TYPE_COLOR = { Training:"#FF6B35", Light:"#4ECDC4", Recovery:"#4ECDC4", Cardio:"#FFE66D", Movement:"#FFE66D", Active:"#A8E6CF", Rest:"#B8B8FF" };
+    const DAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+    const BEDTIME_H = 0, BEDTIME_M = 15; // target 00:00–00:30 midpoint
+
+    // Load saved data from localStorage
+    function loadState() {
+      try {
+        const saved = JSON.parse(localStorage.getItem('tina_state') || '{}');
+        // Migrate old flat done into donePast if needed
+        const donePast = saved.donePast || {};
+        if (saved.done && Object.keys(saved.done).length > 0 && saved.lastDoneDate) {
+          donePast[saved.lastDoneDate] = saved.done;
+        }
+        return {
+          now: new Date(),
+          expanded: {},
+          activeVid: {},
+          wfh: saved.wfh || { 0:false, 1:true, 2:false, 3:true, 4:false, 5:true, 6:false },
+          achievements: saved.achievements || {},
+          achieveTab: 0,
+          viewMonth: new Date().getMonth(),
+          viewYear: new Date().getFullYear(),
+          selectedDate: new Date(),
+          donePast: donePast, // all done states keyed by date: { '2026-05-04': {0:true, 1:true} }
+        };
+      } catch(e) { return { now: new Date(), expanded: {}, activeVid: {}, wfh: {0:false,1:true,2:false,3:true,4:false,5:true,6:false}, achievements: {}, achieveTab: 0, viewMonth: new Date().getMonth(), viewYear: new Date().getFullYear(), selectedDate: new Date(), donePast: {} }; }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem('tina_state', JSON.stringify({
+          wfh: state.wfh,
+          achievements: state.achievements,
+          donePast: state.donePast,
+        }));
+      } catch(e) {}
+    }
+
+    const state = loadState();
+
+    function getSlot(h) {
+      if (h < 12) return "morning";
+      if (h < 14) return "lunch";
+      if (h < 18) return "afternoon";
+      if (h < 20) return "evening";
+      return "night";
+    }
+
+    function getExercises(label) {
+      for (const key of Object.keys(EXERCISES)) {
+        if (label.includes(key)) return EXERCISES[key];
+      }
+      return null;
+    }
+
+    function getPlan(dayNum) {
+      if (dayNum === 0 || dayNum === 6) return WEEKEND_PLANS[dayNum];
+      const weekdays = [1,2,3,4,5];
+      const officeDays = weekdays.filter(d => !state.wfh[d]).sort((a,b) => a-b);
+      const wfhDays = weekdays.filter(d => state.wfh[d]).sort((a,b) => a-b);
+      if (!state.wfh[dayNum]) {
+        const idx = officeDays.indexOf(dayNum);
+        return OFFICE_PLANS[Math.min(idx, OFFICE_PLANS.length-1)];
+      } else {
+        const idx = wfhDays.indexOf(dayNum);
+        return WFH_PLANS[Math.min(idx, WFH_PLANS.length-1)];
+      }
+    }
+
+    function dateKey(d) {
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+
+    function getBedtimeAlert(now) {
+      const h = now.getHours(), m = now.getMinutes();
+      let nowMins = h * 60 + m;
+      let bedMins = BEDTIME_H * 60 + BEDTIME_M + 24 * 60; // next-day midnight
+      if (nowMins < 180) nowMins += 24 * 60; // past midnight
+      const diff = bedMins - nowMins;
+      if (diff <= 0 || diff > 180) return null; // only show within 3hrs
+      if (diff <= 15) return { cls: "urgent", msg: `🛌 Bedtime soon! Target is 00:00–00:30 — wrap up 💤` };
+      if (diff <= 30) return { cls: "urgent", msg: `🌙 ${diff} min to target bedtime (00:00–00:30)` };
+      if (diff <= 60) return { cls: "warning", msg: `🌙 ${diff} min to bedtime — finish up gradually` };
+      return { cls: "ok", msg: `😴 ${diff} min to bedtime — you have time, no rush` };
+    }
+
+    function renderAchievements() {
+      const m = state.viewMonth;
+      const y = state.viewYear;
+      const monthName = new Date(y, m, 1).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+      const firstDay = new Date(y, m, 1).getDay();
+      const daysInMonth = new Date(y, m+1, 0).getDate();
+      const today = new Date();
+      const todayKey = dateKey(today);
+
+      let html = `<div class="achievements-section">`;
+      html += `<div class="section-label">📅 Monthly Achievements</div>`;
+      html += `<div class="month-nav">
+        <button onclick="changeMonth(-1)">‹</button>
+        <div class="month-title">${monthName}</div>
+        <button onclick="changeMonth(1)">›</button>
+      </div>`;
+
+      html += `<div class="cal-grid">`;
+      ["Su","Mo","Tu","We","Th","Fr","Sa"].forEach(d => {
+        html += `<div class="cal-header">${d}</div>`;
+      });
+
+      // Empty cells before 1st
+      for (let i = 0; i < firstDay; i++) {
+        html += `<div class="cal-day empty"></div>`;
+      }
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const key = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const dt = new Date(y, m, d);
+        const dow = dt.getDay();
+        const isFuture = dt > today;
+        const isToday = key === todayKey;
+        const rec = state.achievements[key];
+        const isWeekend = dow === 0 || dow === 6;
+
+        let cls = "cal-day";
+        let inner = `<div class="cal-day-num">${d}</div>`;
+
+        if (isToday) cls += " today-cal";
+
+        if (isFuture) {
+          cls += " future";
+        } else if (isWeekend) {
+          cls += " rest-day";
+          inner += `<div class="cal-day-ex" style="color:#555">rest</div>`;
+        } else if (rec) {
+          const total = rec.total || 1;
+          const done = rec.exercises ? rec.exercises.length : 0;
+          if (done >= total) cls += " done-full";
+          else cls += " done-partial";
+          const exShort = rec.exercises ? rec.exercises.map(e => e.split(" ")[0]).join(" · ") : "";
+          inner += `<div class="cal-day-ex">${exShort}</div>`;
+        } else {
+          cls += " missed";
+        }
+
+        html += `<div class="${cls}">${inner}</div>`;
+      }
+      html += `</div>`;
+
+      html += `</div>`;
+      return html;
+    }
+
+    function render() {
+      const now = state.now;
+      const sel = state.selectedDate;
+      const isToday = dateKey(sel) === dateKey(now);
+      const dayNum = sel.getDay();
+      const day = getPlan(dayNum);
+      const hour = now.getHours();
+      const slot = getSlot(hour);
+      const accent = TYPE_COLOR[day.type];
+      const dayName = DAYS[dayNum];
+      const isWFH = state.wfh[dayNum];
+      const selKey = dateKey(sel);
+      const currentDone = state.donePast[selKey] || {};
+
+      const greeting = slot === "morning" ? "Good morning, Tina! ☀️"
+        : slot === "lunch" ? "Lunch time! 🥗"
+        : slot === "afternoon" ? "Keep going! 💪"
+        : slot === "evening" ? "Time to train! 🔥"
+        : "Wind down 🌙";
+
+      const nextTaskIdx = isToday ? day.schedule.findIndex((s, i) => {
+        if (!currentDone[i]) {
+          const h = parseInt((s.time || "0").split(":")[0]);
+          return isNaN(h) || hour <= h;
+        }
+        return false;
+      }) : -1;
+      const nextTask = isToday
+        ? (nextTaskIdx >= 0 ? day.schedule[nextTaskIdx] : day.schedule.find((_, i) => !currentDone[i]))
+        : null;
+
+      let html = `
+        <div class="header">
+          <div class="date-label">${sel.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}</div>
+          <h1>${isToday ? greeting : "📋 Past Day"}</h1>
+          <div class="badge" style="background:${accent}33;border:1px solid ${accent}88;color:${accent}">
+            ${dayName}: ${day.type} — ${day.label} &nbsp;${isWFH ? "🏠" : "🏢"}
+          </div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:12px">
+            <button onclick="changeDay(-1)" style="background:rgba(255,255,255,0.1);border:none;color:#fff;border-radius:8px;padding:5px 14px;font-size:16px;cursor:pointer">‹</button>
+            ${!isToday ? `<button onclick="goToday()" style="background:rgba(255,107,53,0.3);border:1px solid #FF6B35;color:#FF6B35;border-radius:8px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer">↩ Today</button>` : `<span style="font-size:11px;color:#666">Today</span>`}
+            <button onclick="changeDay(1)" style="background:rgba(255,255,255,0.1);border:none;color:${isToday?"#444":"#fff"};border-radius:8px;padding:5px 14px;font-size:16px;cursor:pointer" ${isToday?"disabled":""}>›</button>
+          </div>
+        </div>
+      `;
+
+      // Bedtime alert
+      const alert = getBedtimeAlert(now);
+      if (alert) {
+        html += `<div class="bedtime-alert ${alert.cls}">${alert.msg}</div>`;
+      }
+
+      // WFH toggle section
+      html += `<div class="toggle-section">
+        <div class="section-label">This Week — Tap to Toggle WFH / Office</div>
+        <div class="hint">🏠 = WFH &nbsp;&nbsp; 🏢 = Office</div>
+        <div class="toggle-grid">`;
+      [0,1,2,3,4,5,6].forEach(d => {
+        const isToday = d === dayNum;
+        const wfh = state.wfh[d];
+        const p = getPlan(d);
+        const col = TYPE_COLOR[p.type];
+        const weekend = d === 0 || d === 6;
+        html += `<div class="day-toggle ${wfh ? "wfh-on" : "wfh-off"} ${isToday ? "today-col" : ""}"
+          style="background:${col}18;border-color:${isToday ? col+"88" : col+"33"}"
+          ${weekend ? "" : `onclick="toggleWFH(${d})"`}>
+          <div class="dname" style="color:${col}">${DAYS[d]}</div>
+          <div class="dtype">${p.type}</div>
+          ${!weekend ? `<div class="wfh-pill">${wfh ? "🏠 WFH" : "🏢 Office"}</div>` : `<div class="wfh-pill" style="color:#555">—</div>`}
+        </div>`;
+      });
+      html += `</div></div>`;
+
+      // NOW card
+      if (nextTask) {
+        const exList = getExercises(nextTask.label);
+        html += `<div class="now-card" style="border-color:${accent};box-shadow:0 0 30px ${accent}22">
+          <div class="now-label">✨ Today's Focus</div>
+          <div class="now-title">${nextTask.label}</div>
+          <div class="now-detail">${nextTask.detail}</div>
+          ${nextTask.time && nextTask.time !== "Anytime" && nextTask.time !== "Optional"
+            ? `<div class="now-time" style="color:${accent}">⏰ ${nextTask.time}</div>` : ""}
+          ${exList ? renderExerciseList(exList, accent, "now") : ""}
+        </div>`;
+      }
+
+      // Schedule
+      const schedLabel = isToday ? "Today's Schedule" : sel.toLocaleDateString("en-US",{weekday:"long"}) + "'s Schedule";
+      html += `<div style="margin-bottom:24px"><div class="section-label">${schedLabel}</div>`;
+      day.schedule.forEach((s, i) => {
+        const exList = getExercises(s.label);
+        const isDone = !!currentDone[i];
+        const isExpanded = !!state.expanded[i];
+        const isNext = s === nextTask && !isDone;
+        html += `<div class="schedule-item" style="background:${isDone ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.07)"};opacity:${isDone ? 0.5 : 1};border-color:${isNext ? accent+"44" : "transparent"}">
+          <div class="schedule-row" onclick="toggleDone(${i})">
+            <div class="checkbox ${isDone ? "done" : ""}">${isDone ? "✓" : ""}</div>
+            <div style="flex:1">
+              <div class="item-label ${isDone ? "done" : ""}">${s.label}</div>
+              <div class="item-detail">${s.detail}</div>
+              ${s.time ? `<div class="item-time">⏰ ${s.time}</div>` : ""}
+            </div>
+            ${exList && !isDone ? `<button class="videos-btn" style="color:${accent};border-color:${accent}66;background:${isExpanded ? accent+"33":"transparent"}" onclick="event.stopPropagation();toggleExpanded(${i})">${isExpanded ? "▲" : "📹"}</button>` : ""}
+          </div>
+          ${exList && isExpanded && !isDone ? `<div class="exercise-list">${renderExerciseList(exList, accent, "s"+i)}</div>` : ""}
+        </div>`;
+      });
+      html += `</div>`;
+
+      // Nutrition
+      html += `<div class="nutrition">🍽 No food after 7pm · Protein 70–90g · 😴 Target sleep: 00:00–00:30 · 💛 Consistency > perfection</div>`;
+
+      // Achievements calendar
+      html += renderAchievements();
+
+      document.getElementById("app").innerHTML = html;
+    }
+
+    function renderExerciseList(exercises, accent, prefix) {
+      let html = `<div style="margin-top:10px">`;
+      exercises.forEach((ex, i) => {
+        const key = prefix + "_" + i;
+        const isActive = !!state.activeVid[key];
+        html += `<div>
+          <div class="exercise-row">
+            <span class="exercise-name">${ex.name}</span>
+            <button class="watch-btn" style="color:${accent};border-color:${accent}77;background:${isActive ? accent+"44":"transparent"}"
+              onclick="toggleVid('${key}','${ex.vid}')">${isActive ? "▲ hide" : "▶ watch"}</button>
+          </div>
+          ${isActive ? renderVideoPanel(ex.vid, key) : ""}
+        </div>`;
+      });
+      html += `</div>`;
+      return html;
+    }
+
+    function renderVideoPanel(videoId, key) {
+      return `<div class="video-panel">
+        <iframe src="https://www.youtube.com/embed/${videoId}?rel=0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen></iframe>
+        <div class="video-footer">
+          <a class="yt-link" href="https://www.youtube.com/watch?v=${videoId}" target="_blank">↗ Open in YouTube</a>
+          <button class="close-btn" onclick="toggleVid('${key}','${videoId}')">✕ close</button>
+        </div>
+      </div>`;
+    }
+
+    function recordAchievementFor(sel) {
+      const key = dateKey(sel);
+      const day = getPlan(sel.getDay());
+      const currentDone = state.donePast[key] || {};
+      const doneItems = day.schedule.filter((_, i) => currentDone[i]);
+      const exercises = [];
+      doneItems.forEach(s => {
+        const exList = getExercises(s.label);
+        if (exList) exList.forEach(e => exercises.push(e.name));
+        else exercises.push(s.label.replace(/^[^\w]+/, "").trim());
+      });
+      if (exercises.length > 0) {
+        state.achievements[key] = {
+          label: day.label,
+          total: day.schedule.length,
+          exercises,
+        };
+      } else {
+        delete state.achievements[key];
+      }
+      saveState();
+    }
+
+    function recordAchievement() { recordAchievementFor(state.now); }
+
+    function toggleDone(i) {
+      const sel = state.selectedDate;
+      const k = dateKey(sel);
+      if (!state.donePast[k]) state.donePast[k] = {};
+      state.donePast[k][i] = !state.donePast[k][i];
+      recordAchievementFor(sel);
+      render();
+    }
+    function toggleExpanded(i) { state.expanded[i] = !state.expanded[i]; render(); }
+    function toggleVid(key) { state.activeVid[key] = !state.activeVid[key]; render(); }
+    function toggleWFH(d) { state.wfh[d] = !state.wfh[d]; state.done = {}; state.expanded = {}; saveState(); render(); }
+    function changeDay(dir) {
+      const d = new Date(state.selectedDate);
+      d.setDate(d.getDate() + dir);
+      if (d > state.now) return; // can't go to future
+      state.selectedDate = d;
+      state.expanded = {};
+      render();
+    }
+    function goToday() {
+      state.selectedDate = new Date(state.now);
+      state.expanded = {};
+      render();
+    }
+    function changeMonth(dir) {
+      state.viewMonth += dir;
+      if (state.viewMonth > 11) { state.viewMonth = 0; state.viewYear++; }
+      if (state.viewMonth < 0) { state.viewMonth = 11; state.viewYear--; }
+      render();
+    }
+
+    render();
+    setInterval(() => { state.now = new Date(); render(); }, 60000);
+  </script>
+</body>
+</html>
